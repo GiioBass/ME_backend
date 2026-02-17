@@ -1,0 +1,4 @@
+- las mazmorras se puede reiniciar, y al reiniciar se genera una nueva mazmorra con nuevos enemigos y nuevos tesoros.
+- lo que no se debe regenerar es la casa del jugador, poblados, aunque se podría colocar que hay tipos de mazmorras algunas se reinicializa el loot pero no la distribución de pasillosy habitaciónes, en otras mazmorras de otro tipo si se reinician completamente tanto pasillos, loot, habitaciones, etc.
+- si el jugador deja el personaje en exploración automatica, se deben tener en cuenta no cambiar de bioma, el cambio de bioma solo lo debe realizar el jugador.
+- pueden existir diferentes tipos de personajes para jugar que el jugador debe escocger al inicio con diferentes habilidades y atributos. un jugador solo tiene un solo personaje, y este pueden ser mago, luchador, tirador, etc. y cada uno tiene diferentes habilidades y atributos. 
