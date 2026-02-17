@@ -12,6 +12,8 @@ Navigate through the world.
 *   `go [direction]` (e.g., `go north`)
 *   `move [direction]`
 *   `walk [direction]`
+*   `enter`, `down`, `dive` (Enter dungeons/caves)
+*   `climb`, `up`, `surface` (Return to surface)
 
 ## Observation
 Inspect your surroundings.

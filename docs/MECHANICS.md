@@ -20,3 +20,10 @@ Reglas fundamentales, fórmulas y lógicas del sistema.
 
 ## 4. Progresión
 - [ ] **Curva de Experiencia:** `XP_Necesaria = Nivel * 100 * 1.5 ^ (Nivel - 1)`.
+
+## 5. Exploración
+*   **Capas Verticales (Z-Layers):**
+    *   **Z=0 (Superficie):** Mundo abierto, biomas estándar.
+    *   **Z<0 (Subsuelo):** Mazmorras y cuevas. Mayor dificultad, mejores recompensas.
+    *   **Z>0 (Cielo):** Posible expansión futura (Islas flotantes).
+*   **Generación de Entradas:** Las entradas a cuevas se generan dinámicamente en los chunks de superficie.

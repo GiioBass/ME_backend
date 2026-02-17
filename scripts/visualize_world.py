@@ -37,24 +37,30 @@ def visualize_world(player_name=None):
         return
 
     grid = {}
-    # Determine Viewport
-    # Radius of 4 gives a 9x9 grid (covering more than a 5x5 chunk)
+    
+    # Determine Viewport & Z-Level
+    # Radius of 4 gives a 9x9 grid
     radius = 4
     
-    center_x, center_y = 0, 0
+    center_x, center_y, center_z = 0, 0, 0
     if player and player.current_location_id:
         # Find player coords
-        # optimized: could map ID to coords first, but list loop is fast enough for now
         player_loc = next((l for l in locations if l.id == player.current_location_id), None)
         if player_loc and player_loc.coordinates:
              center_x, center_y = player_loc.coordinates.x, player_loc.coordinates.y
+             center_z = player_loc.coordinates.z
+
+    # Populate Grid with Z-index
+    for loc in locations:
+        if loc.coordinates:
+            grid[(loc.coordinates.x, loc.coordinates.y, loc.coordinates.z)] = loc
 
     min_x = center_x - radius
     max_x = center_x + radius
     min_y = center_y - radius
     max_y = center_y + radius
 
-    print(f"\nWorld Map (Viewport centered at {center_x},{center_y})")
+    print(f"\nWorld Map (Viewport centered at {center_x},{center_y}, Z={center_z})")
     print(f"Bounds: ({min_x},{min_y}) to ({max_x},{max_y})")
     
     # Coordinate header
@@ -65,7 +71,7 @@ def visualize_world(player_name=None):
         # Row 1: Vertical connections (North)
         line_north = "   "
         for x in range(min_x, max_x + 1):
-            loc = grid.get((x, y))
+            loc = grid.get((x, y, center_z))
             symbol = " | " if (loc and "north" in loc.exits) else "   "
             line_north += f" {symbol} "
         print(line_north)
@@ -73,7 +79,7 @@ def visualize_world(player_name=None):
         # Row 2: Content
         line_mid = f"{y:3}"
         for x in range(min_x, max_x + 1):
-            loc = grid.get((x, y))
+            loc = grid.get((x, y, center_z))
             if not loc:
                 line_mid += "     "
                 continue
@@ -89,8 +95,10 @@ def visualize_world(player_name=None):
             
             if is_here:
                 center = "[P]" # Player
-            elif x == 0 and y == 0:
-                center = "[S]" # Start
+            elif loc.id == "start": # approximate start check
+                center = "[S]" 
+            elif x == 0 and y == 0 and center_z == 0:
+                center = "[S]" # Start at 0,0,0
             else:
                 center = "[ ]"
             
