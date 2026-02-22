@@ -18,6 +18,32 @@ class GameResponse(BaseModel):
 def get_game_service(repo: GameRepository) -> GameService:
     return GameService(repo)
 
+def serialize_player(player) -> dict:
+    data = player.model_dump()
+    if "inventory" in data and data["inventory"]:
+        grouped = {}
+        for item in data["inventory"]:
+            name = item.get("name", "Unknown") if isinstance(item, dict) else (item.name if hasattr(item, "name") else "Unknown")
+            if name not in grouped:
+                grouped[name] = {"item": item, "qty": 0}
+            grouped[name]["qty"] += 1
+        
+        # Format the grouped inventory list for the frontend
+        # Assuming the original item dictionary as base, adding qty
+        new_inventory = []
+        for name, group_data in grouped.items():
+            item_data = group_data["item"]
+            if isinstance(item_data, dict):
+                item_data["qty"] = group_data["qty"]
+                new_inventory.append(item_data)
+            else:
+                # If it's a model instance somehow, try dumping or set attribute
+                item_dict = item_data.model_dump() if hasattr(item_data, "model_dump") else {"name": name}
+                item_dict["qty"] = group_data["qty"]
+                new_inventory.append(item_dict)
+        data["inventory"] = new_inventory
+    return data
+
 router = APIRouter()
 
 # Global Repo instance
@@ -36,7 +62,7 @@ def start_game(name: str):
     location = _repo.get_location(player.current_location_id)
     return {
         "message": f"Welcome, {name}! Your adventure begins.",
-        "player": player.model_dump(),
+        "player": serialize_player(player),
         "location": location.model_dump() if location else {}
     }
 
@@ -47,7 +73,7 @@ def send_command(req: CommandRequest):
         msg, player, location = service.process_command(req.player_id, req.command)
         return {
             "message": msg,
-            "player": player.model_dump(),
+            "player": serialize_player(player),
             "location": location.model_dump()
         }
     except ValueError as e:
