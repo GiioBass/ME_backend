@@ -39,17 +39,18 @@ def test_vertical_movement_commands():
     player = Player(name="Hero", current_location_id="surf")
     
     # Test "enter"
-    result = parser.parse("enter", player, surface, lambda p: None)
+    wt = None
+    result = parser.parse("enter", player, surface, wt, lambda p: None)
     assert "You travel down" in result.message
     assert player.current_location_id == "cave"
     
     # Test "climb" (from cave)
     player.current_location_id = "cave" # Manually move player for test
-    result = parser.parse("climb", player, cave, lambda p: None)
+    result = parser.parse("climb", player, cave, wt, lambda p: None)
     assert "You travel up" in result.message
     assert player.current_location_id == "surf"
 
     # Test "down" explicit
     player.current_location_id = "surf"
-    result = parser.parse("down", player, surface, lambda p: None)
+    result = parser.parse("down", player, surface, wt, lambda p: None)
     assert "You travel down" in result.message

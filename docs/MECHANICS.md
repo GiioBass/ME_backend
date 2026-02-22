@@ -3,9 +3,12 @@
 Reglas fundamentales, fórmulas y lógicas del sistema.
 
 ## 1. Combate
-*   **Fórmula de Daño Físico:** `Daño = (Ataque_Atacante * (100 / (100 + Defensa_Defensor)))`.
-*   **Fórmula de Daño Mágico:** `Daño = (Poder_Mágico * Resistencia_Mágica_Factor)`.
-*   **Evasión:** Probabilidad porcentual basada en Agilidad vs Destreza del atacante.
+*   **Sistema de Turnos:** Al usar el comando `attack`, el jugador golpea primero. Si el enemigo sobrevive, contraataca inmediatamente.
+*   **Daño del Jugador:** `Daño = max(1, Fuerza / 2)`.
+*   **Daño del Enemigo:** Daño fijo basado en el tipo de enemigo (Ej: Goblin = 2).
+*   **Muerte:**
+    *   **Enemigo:** Desaparece y otorga XP.
+    *   **Jugador:** Reaparece en el inicio con HP restaurado.
 
 ## 2. Estados Alterados
 - [ ] **Envenenado:** Pierde 5% de HP por turno durante 3 turnos.

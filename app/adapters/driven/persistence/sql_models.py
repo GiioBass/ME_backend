@@ -49,9 +49,12 @@ class LocationDB(SQLModel, table=True):
     exits: Dict = Field(default={}, sa_type=JSON)
     interactables: List[str] = Field(default=[], sa_type=JSON)
     items: List[dict] = Field(default=[], sa_type=JSON)
+    enemies: List[dict] = Field(default=[], sa_type=JSON)
     coordinates: Optional[Dict] = Field(default=None, sa_type=JSON)
 
     def to_domain(self) -> Location:
+        from app.core.domain.enemy import Enemy
+        
         loc = Location(
             id=self.id,
             name=self.name,
@@ -60,6 +63,9 @@ class LocationDB(SQLModel, table=True):
             interactables=self.interactables,
             items=[Item(**i) for i in self.items]
         )
+        if self.enemies:
+            loc.enemies = [Enemy(**e) for e in self.enemies]
+            
         if self.coordinates:
             loc.coordinates = Coordinates(**self.coordinates)
         return loc
@@ -73,5 +79,11 @@ class LocationDB(SQLModel, table=True):
             exits=location.exits,
             interactables=location.interactables,
             items=[item.model_dump() for item in location.items],
+            enemies=[e.model_dump() for e in location.enemies],
             coordinates=location.coordinates.model_dump() if location.coordinates else None
         )
+
+class WorldStateDB(SQLModel, table=True):
+    id: str = Field(primary_key=True, default="world_state")
+    total_ticks: int = 0
+

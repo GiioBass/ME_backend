@@ -24,6 +24,18 @@ class Player(BaseModel):
     def move(self, direction: str, location_exits: Dict[str, str]) -> Optional[str]:
         return location_exits.get(direction)
 
+    def add_item(self, item: Item):
+        self.inventory.append(item)
+    
+    def remove_item(self, item_id: str) -> Optional[Item]:
+        for i, item in enumerate(self.inventory):
+            if item.id == item_id or item.name.lower() == item_id.lower():
+                return self.inventory.pop(i)
+        return None
+    
+    def has_item(self, item_name: str) -> bool:
+        return any(i.name.lower() == item_name.lower() for i in self.inventory)
+
     def gain_xp(self, amount: int):
         self.stats.xp += amount
         # Simple level up logic
@@ -34,3 +46,15 @@ class Player(BaseModel):
             self.stats.hp = self.stats.max_hp
             return True
         return False
+
+    def take_damage(self, amount: int) -> int:
+        self.stats.hp -= amount
+        if self.stats.hp < 0:
+            self.stats.hp = 0
+        return amount
+
+    def is_alive(self) -> bool:
+        return self.stats.hp > 0
+    
+    def heal(self):
+        self.stats.hp = self.stats.max_hp

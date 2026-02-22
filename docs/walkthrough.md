@@ -64,6 +64,29 @@ You can try the API yourself by running the server:
     python scripts/visualize_world.py [PlayerName]
     ```
     This script now runs in a loop, updating every second to show your movement in real-time. Press `Ctrl+C` to exit.
+
+### 4. Interacting with Items
+As you explore, you will find items generated in the world (Sticks, Stones, etc.).
+- Use `look` to see what is on the ground.
+- Use `take [item name]` to pick it up.
+- Use `inventory` or `i` to check your bag.
+- Use `drop [item name]` to leave it behind.
+
+### 5. Combat
+You may encounter enemies like Goblins or Cave Spiders, especially in caves or dangerous biomes.
+- Use `look` to spot enemies.
+- Use `attack [enemy name]` to fight.
+- Watch your HP! If you die, you will respawn at the start.
+
+### 6. Time & Events
+Time passes as you act (turn-based).
+- **Movement** takes 10 minutes.
+- **Combat** takes 2 minutes.
+- **Inventory actions** take 1 minute.
+- **Day/Night Cycle:** It gets dark at 20:00.
+- **Healing:** You regenerate 1 HP for every 10 minutes of activity.
+- Use `time` command to check the clock.
+
 For a full list of supported commands, see [COMMANDS.md](COMMANDS.md).
 
 ## Next Steps

@@ -1,7 +1,8 @@
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 import uuid
 from pydantic import BaseModel, Field
 from app.core.domain.item import Item
+from app.core.domain.enemy import Enemy
 
 class Coordinates(BaseModel):
     x: int
@@ -16,3 +17,30 @@ class Location(BaseModel):
     interactables: List[str] = [] # List of interactable object names not picked up
     items: List[Item] = []
     coordinates: Optional[Coordinates] = None
+
+    def add_item(self, item: Item):
+        self.items.append(item)
+    
+    def remove_item(self, item_id: str) -> Optional[Item]:
+        for i, item in enumerate(self.items):
+            if item.id == item_id or item.name.lower() == item_id.lower():
+                return self.items.pop(i)
+        return None
+
+    # Forward reference handled by not typing explicitly or using string
+    enemies: List['Enemy'] = [] 
+
+    def add_enemy(self, enemy):
+        self.enemies.append(enemy)
+
+    def remove_enemy(self, enemy_id: str):
+        for i, enemy in enumerate(self.enemies):
+            if enemy.id == enemy_id or enemy.name.lower() == enemy_id.lower():
+                return self.enemies.pop(i)
+        return None
+    
+    def get_enemy(self, enemy_name: str):
+        for enemy in self.enemies:
+            if enemy.name.lower() == enemy_name.lower():
+                return enemy
+        return None

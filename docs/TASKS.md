@@ -18,6 +18,10 @@ Esta lista detalla las tareas pendientes para evolucionar el prototipo actual ha
 - [ ] **Entidades de Items**
     - [ ] Definir tipos de items: `Weapon`, `Armor`, `Consumable`, `Material`.
     - [ ] Atributos: Peso, valor, durabilidad, efectos.
+- [x] Item System Implementation
+    - [x] Update Domain Models (Player, Location) <!-- id: 12 -->
+    - [x] Implement Inventory Commands (take, drop, inventory) <!-- id: 13 -->
+    - [x] Update World Generator with Items <!-- id: 14 -->
 - [ ] **Mecánicas de Inventario**
     - [ ] Implementar comando `take [item]` y `drop [item]`.
     - [ ] Implementar comando `inventory` (listar items).
@@ -26,18 +30,16 @@ Esta lista detalla las tareas pendientes para evolucionar el prototipo actual ha
     - [ ] Guardar inventario del jugador en base de datos/repositorio.
     - [ ] Guardar items tirados en el suelo (en `Location`).
 
-## 3. Sistema de Combate y Stats
-- [ ] **Atributos del Jugador**
-    - [ ] Refinar Stats: Fuerza, Agilidad, Inteligencia.
-    - [ ] Implementar cálculo de HP/MP basado en stats y nivel.
-- [ ] **Enemigos (Mobs)**
-    - [ ] Crear entidad `Enemy`.
-    - [ ] Spawne de enemigos en localizaciones peligrosas.
-- [ ] **Ciclo de Combate**
-    - [ ] Implementar comandos `attack [enemy]`.
-    - [ ] Sistema de turnos simple (Tu atacas -> Enemigo ataca).
-    - [ ] Fórmula de daño (Ataque vs Defensa).
-    - [ ] Loot al derrotar enemigos (XP y objetos).
+- [x] Combat System
+    - [x] Define Enemy Entity <!-- id: 15 -->
+    - [x] Update Location/Player for Combat <!-- id: 16 -->
+    - [x] Implement Attack Command & Combat Logic <!-- id: 17 -->
+    - [x] Update World Gen with Enemies <!-- id: 18 -->
+
+- [x] Event System & Time
+    - [x] Implement WorldState Persistence <!-- id: 19 -->
+    - [x] Implement Game Loop / Ticks <!-- id: 20 -->
+    - [x] Implement Periodic Events (Heal, Respawn) <!-- id: 21 -->
 
 ## 4. Persistencia y Base de Datos
 - [x] **Migración a Base de Datos Real**

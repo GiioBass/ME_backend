@@ -57,3 +57,21 @@ class SQLGameRepository(GameRepository):
                     if loc.coordinates.get("x") == x and loc.coordinates.get("y") == y and loc.coordinates.get("z") == z:
                         return loc.to_domain()
             return None
+
+    def get_world_time(self):
+        from app.core.domain.time_system import WorldTime
+        from app.adapters.driven.persistence.sql_models import WorldStateDB
+        
+        with Session(engine) as session:
+            state = session.get(WorldStateDB, "world_state")
+            if not state:
+                return WorldTime(total_ticks=0)
+            return WorldTime(total_ticks=state.total_ticks)
+
+    def save_world_time(self, world_time):
+        from app.adapters.driven.persistence.sql_models import WorldStateDB
+        
+        with Session(engine) as session:
+            state = WorldStateDB(id="world_state", total_ticks=world_time.total_ticks)
+            session.merge(state)
+            session.commit()

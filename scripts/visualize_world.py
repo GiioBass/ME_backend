@@ -72,8 +72,8 @@ def visualize_world(player_name=None):
         line_north = "   "
         for x in range(min_x, max_x + 1):
             loc = grid.get((x, y, center_z))
-            symbol = " | " if (loc and "north" in loc.exits) else "   "
-            line_north += f" {symbol} "
+            symbol = "|" if (loc and "north" in loc.exits) else " "
+            line_north += f"  {symbol} "
         print(line_north)
 
         # Row 2: Content

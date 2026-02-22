@@ -19,12 +19,14 @@ class GameService:
         
         if not start_location:
             # Generate initial chunk centered at 0,0
-            # Let's generate a 5x5 chunk starting at -2, -2 so 0,0 is the center
-            # Or just start at 0,0. The user agreed on "5x5 chunk".
-            # Let's start at 0,0 for simplicity as per plan.
             generated_locations = self.world_gen.generate_chunk(start_x=0, start_y=0, size=5)
             for loc in generated_locations:
                 self.repo.create_location(loc)
+            start_location = self.repo.get_location(start_id)
+
+        # Ensure neighbors for the start location (Infinite Gen start)
+        if start_location:
+             self._ensure_neighbors(start_location)
             
         player = Player(name=name, current_location_id=start_id)
         return self.repo.save_player(player)
@@ -41,127 +43,121 @@ class GameService:
         # Define callback for saving player state
         def save_player_state(p: Player):
             self.repo.save_player(p)
+            
+        def save_location_state(l: Location):
+            self.repo.create_location(l) 
 
-        result = self.parser.parse(command_text, player, current_location, save_player_state)
+        # Load World Time
+        world_time = self.repo.get_world_time()
+        
+        # Parse Command
+        result = self.parser.parse(command_text, player, current_location, world_time, save_player_state, save_location_state)
+        
+        # Advance Time based on action (simplified)
+        # If command was successful (implied by checking if message is not error? or just always?)
+        # For now, let's say any command advances time by 1 minute, moving/fighting more?
+        # Let's let the PARSER decide cost? Or Service?
+        # Service doesn't know what happened easily without parsing result message or structured result.
+        # Plan said: Move 10 mins, Attack 2 mins.
+        # But Parser handles the logic.
+        # Maybe Parser returns `time_cost` in CommandResult?
+        
+        # Modification: I need to update CommandResult to include time_cost first?
+        # Or I just assume 1 tick per command for MVP?
+        # The plan says "Time will currently only advance when the user performs an action".
+        # Let's assume the parser handles the action.
+        # But the Parser signature in `game_service` is being changed here.
+        # I need to update Parser signature too.
+        
+        # Let's update Parser first? No, I can update Service to call it with new arg, 
+        # but I need to update Parser to accept it.
+        # For this step, I will pass world_time to parser.
+        
+        # Time Advancement Logic:
+        # If result.time_cost > 0: world_time.advance(result.time_cost); repo.save(world_time)
+        # I'll need to update CommandResult to have time_cost.
+        
+        if hasattr(result, 'time_cost') and result.time_cost > 0:
+            world_time.advance(result.time_cost)
+            self.repo.save_world_time(world_time)
+            
+            # Simple Day/Night Announcement
+            if world_time.hour == 20 and world_time.minute < result.time_cost:
+                result.message += "\nNight has fallen."
+            elif world_time.hour == 6 and world_time.minute < result.time_cost:
+                result.message += "\nDawn breaks."
+
+            # Periodic Events
+            self._handle_periodic_events(world_time.total_ticks, result.player)
+            # Re-save player in case of healing
+            self.repo.save_player(result.player)
         
         # Check if player moved (location ID changed)
         final_location = result.location
         if result.player.current_location_id != current_location.id:
-            # Player successfully moved to an existing location
+            # Player successfully moved
             new_loc_id = result.player.current_location_id
             new_loc = self.repo.get_location(new_loc_id)
             if new_loc:
                 final_location = new_loc
-        elif result.message == "You can't go that way.":
-            # Attempt Dynamic Generation
-            # 1. Parse direction from command (naive re-parsing or change parser return?)
-            # Let's simple parse here for now to avoid breaking parser contract yet
-            args = command_text.lower().split()
-            if args:
-                action = args[0]
-                direction = args[1] if len(args) > 1 else action
-                if direction in ["north", "south", "east", "west"]:
-                     # Try to expand world
-                     new_loc = self._attempt_expansion(player, current_location, direction)
-                     if new_loc:
-                         player.current_location_id = new_loc.id
-                         save_player_state(player)
-                         final_location = new_loc
-                         result.message = f"You travel {direction} into uncharted lands..."
-                         result.location = new_loc
-        
+                # NEW: Ensure neighbors exist for the new location (Infinite Gen)
+                self._ensure_neighbors(final_location)
+                
         return result.message, result.player, final_location
 
-    def _attempt_expansion(self, player: Player, current_loc: Location, direction: str) -> Location:
-        if not current_loc.coordinates:
-            return None
+    def _handle_periodic_events(self, current_tick: int, player: Player):
+        # Every 10 ticks: Passive Heal
+        if current_tick % 10 == 0:
+            if player.stats.hp < player.stats.max_hp:
+                player.stats.hp += 1
+                # We could add a message, but CommandResult message is already set.
+                # Maybe just silent heal.
+
+    def _ensure_neighbors(self, location: Location):
+        """Checks cardinal neighbors and generates them if missing."""
+        if not location.coordinates:
+            return
+
+        x, y, z = location.coordinates.x, location.coordinates.y, location.coordinates.z
         
-        # Calculate target coordinates
-        x, y, z = current_loc.coordinates.x, current_loc.coordinates.y, current_loc.coordinates.z
-        if direction == "north": y += 1
-        elif direction == "south": y -= 1
-        elif direction == "east": x += 1
-        elif direction == "west": x -= 1
+        # Directions mapping to coordinate deltas
+        deltas = {
+            "north": (0, 1, 0),
+            "south": (0, -1, 0),
+            "east": (1, 0, 0),
+            "west": (-1, 0, 0),
+            # Vertical neighbors handled by generate_single_location logic usually
+            # But we could check "down" if we are on surface?
+        }
         
-        # Check if location already exists (but wasn't linked?)
-        existing_loc = self.repo.get_location_by_coordinates(x, y, z)
-        if existing_loc:
-            # Just link them and return
-            self._link_locations(current_loc, existing_loc, direction)
-            return existing_loc
-        
-        # Generate new Chunk centering on target or just target?
-        # Let's generate a 5x5 chunk centered on the target to populate the area
-        # This might overlap with existing, so we need to be careful.
-        # WorldGenerator.generate_chunk logic:
-        # It generates locations. We should check if they exist before creating.
-        
-        # Heuristic: If I move to X=3, I enter a new "zone".
-        # Let's just generate the specific chunk that WOULD contain this coordinate.
-        # Assuming grid of 5x5 chunks:
-        # Chunk 0: Center 0,0. Range -2 to 2.
-        # Chunk East: Center 5,0. Range 3 to 7.
-        # This keeps chunks aligned to a grid.
-        
-        chunk_size = 5
-        # Calculate chunk center based on target x,y
-        # Center = k * chunk_size
-        # But our initial chunk was 0,0 with size 5 (meaning 0 to 4? or centered?)
-        # WorldGenerator: generate_chunk(start_x, start_y, size)
-        # It loops x from start to start+size.
-        # Initial call: start_x=0, start_y=0.
-        # So locations are (0,0) to (4,4).
-        
-        # If I am at (4,0) and go East to (5,0).
-        # Target (5,0).
-        # I want to generate chunk starting at 5,0.
-        
-        # Simple grid alignment:
-        # chunk_start_x = (target_x // chunk_size) * chunk_size
-        # chunk_start_y = (target_y // chunk_size) * chunk_size
-        
-        # But wait, coordinates can be negative.
-        # (-1 // 5) = -1. (-1 * 5) = -5.
-        # If target -1. Chunk -5 to -1.
-        
-        # Let's trust this grid math.
-        target_chunk_x = (x // chunk_size) * chunk_size
-        target_chunk_y = (y // chunk_size) * chunk_size
-        
-        new_locations = self.world_gen.generate_chunk(target_chunk_x, target_chunk_y, chunk_size)
-        
-        target_loc = None
-        for loc in new_locations:
-            # Check if exists
-            if self.repo.get_location(loc.id):
-                 continue # Skip ID collision (unlikely with UUID)
+        for direction, (dx, dy, dz) in deltas.items():
+            nx, ny, nz = x + dx, y + dy, z + dz
             
-            # Check if coord collision?
-            if loc.coordinates:
-                 conflict = self.repo.get_location_by_coordinates(loc.coordinates.x, loc.coordinates.y, loc.coordinates.z)
-                 if conflict:
-                     continue
+            # Check if neighbor already linked
+            if direction in location.exits:
+                continue # Already linked
             
-            self.repo.create_location(loc)
-            if loc.coordinates.x == x and loc.coordinates.y == y and loc.coordinates.z == z:
-                target_loc = loc
-                
-        # Link current to target if found (it should be in the new chunk)
-        if target_loc:
-             self._link_locations(current_loc, target_loc, direction)
-             return target_loc
-        
-        # Fallback: if target was skipped because it existed? (should have been caught by get_location_by_coordinates)
-        return self.repo.get_location_by_coordinates(x, y, z)
+            # Check if neighbor exists in DB but not linked
+            neighbor = self.repo.get_location_by_coordinates(nx, ny, nz)
+            
+            if not neighbor:
+                # Generate new
+                neighbor = self.world_gen.generate_single_location(nx, ny, nz)
+                self.repo.create_location(neighbor)
+            
+            # Link them
+            self._link_locations(location, neighbor, direction)
 
     def _link_locations(self, loc_a: Location, loc_b: Location, dir_a_to_b: str):
-        opposites = {"north": "south", "south": "north", "east": "west", "west": "east"}
+        opposites = {"north": "south", "south": "north", "east": "west", "west": "east", "up": "down", "down": "up"}
         dir_b_to_a = opposites.get(dir_a_to_b)
         
         loc_a.exits[dir_a_to_b] = loc_b.id
         loc_b.exits[dir_b_to_a] = loc_a.id
         
-        self.repo.create_location(loc_a) # Update
-        self.repo.create_location(loc_b) # Update
+        self.repo.create_location(loc_a)
+        self.repo.create_location(loc_b)
+
+
 
 

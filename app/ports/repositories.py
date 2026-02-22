@@ -24,3 +24,11 @@ class GameRepository(ABC):
     def get_location_by_coordinates(self, x: int, y: int, z: int) -> Optional[Location]:
         pass
 
+    @abstractmethod
+    def get_world_time(self) -> 'WorldTime':
+        pass
+
+    @abstractmethod
+    def save_world_time(self, world_time: 'WorldTime'):
+        pass
+

@@ -28,3 +28,10 @@ class InMemoryGameRepository(GameRepository):
                 return loc
         return None
 
+    def get_world_time(self):
+        from app.core.domain.time_system import WorldTime
+        return getattr(self, "world_time", WorldTime(total_ticks=0))
+
+    def save_world_time(self, world_time):
+        self.world_time = world_time
+
