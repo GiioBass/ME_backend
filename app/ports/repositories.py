@@ -9,6 +9,10 @@ class GameRepository(ABC):
         pass
 
     @abstractmethod
+    def get_player_by_name(self, name: str) -> Optional[Player]:
+        pass
+
+    @abstractmethod
     def save_player(self, player: Player) -> Player:
         pass
 

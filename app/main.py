@@ -3,10 +3,15 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.adapters.driving.api.routes import router as game_router
 from app.adapters.driven.persistence.db_config import create_db_and_tables
+from app.adapters.driven.persistence.sql_repository import SQLGameRepository
+from app.core.use_cases.data_loader import DataLoader
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     create_db_and_tables()
+    repo = SQLGameRepository()
+    loader = DataLoader(repo)
+    loader.load_static_locations()
     yield
 
 app = FastAPI(

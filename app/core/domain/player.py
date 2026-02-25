@@ -20,7 +20,36 @@ class Player(BaseModel):
     stats: Stats = Field(default_factory=Stats)
     current_location_id: str
     inventory: List[Item] = []
+    equipment: Dict[str, Optional[Item]] = Field(default_factory=lambda: {"weapon": None, "armor": None})
     
+    def equip(self, item: Item) -> str:
+        if not item.equip_slot:
+            return "You cannot equip that."
+        
+        # Take it out of inventory
+        if not self.remove_item(item.id):
+            return "Item not found in inventory."
+            
+        slot = item.equip_slot
+        msg = f"You equipped the {item.name}."
+        
+        # If something was already equipped in that slot, put it back in the inventory
+        if slot in self.equipment and self.equipment[slot] is not None:
+            old_item = self.equipment[slot]
+            self.add_item(old_item)
+            msg += f" You unequal the {old_item.name}."
+            
+        self.equipment[slot] = item
+        return msg
+
+    def unequip(self, slot: str) -> str:
+        if slot not in self.equipment or self.equipment[slot] is None:
+            return "Nothing is equipped there."
+            
+        item = self.equipment[slot]
+        self.equipment[slot] = None
+        self.add_item(item)
+        return f"You unequipped the {item.name}."
     def move(self, direction: str, location_exits: Dict[str, str]) -> Optional[str]:
         return location_exits.get(direction)
 

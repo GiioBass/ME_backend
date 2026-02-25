@@ -14,6 +14,14 @@ class SQLGameRepository(GameRepository):
                 return player_db.to_domain()
             return None
 
+    def get_player_by_name(self, name: str) -> Optional[Player]:
+        with Session(engine) as session:
+            statement = select(PlayerDB).where(PlayerDB.name == name)
+            player_db = session.exec(statement).first()
+            if player_db:
+                return player_db.to_domain()
+            return None
+
     def save_player(self, player: Player) -> Player:
         with Session(engine) as session:
             # Check if exists to update, or just merge

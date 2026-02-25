@@ -10,6 +10,7 @@ class PlayerDB(SQLModel, table=True):
     current_location_id: str
     stats: Dict = Field(default={}, sa_type=JSON)
     inventory: List[dict] = Field(default=[], sa_type=JSON)
+    equipment: Dict[str, Optional[dict]] = Field(default={}, sa_type=JSON)
 
     def to_domain(self) -> Player:
         # Reconstruct Domain Player from DB Model
@@ -30,6 +31,9 @@ class PlayerDB(SQLModel, table=True):
         if self.inventory:
             p.inventory = [Item(**item_data) for item_data in self.inventory]
             
+        if self.equipment:
+            p.equipment = {slot: (Item(**item_data) if item_data else None) for slot, item_data in self.equipment.items()}
+            
         return p
 
     @classmethod
@@ -39,7 +43,8 @@ class PlayerDB(SQLModel, table=True):
             name=player.name,
             current_location_id=player.current_location_id,
             stats=player.stats.model_dump(),
-            inventory=[item.model_dump() for item in player.inventory]
+            inventory=[item.model_dump() for item in player.inventory],
+            equipment={slot: (item.model_dump() if item else None) for slot, item in player.equipment.items()}
         )
 
 class LocationDB(SQLModel, table=True):
