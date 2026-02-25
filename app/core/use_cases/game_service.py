@@ -19,10 +19,19 @@ class GameService:
         start_id = "loc_0_0_0"
         start_location = self.repo.get_location(start_id)
         if not start_location:
-            generated_locations = self.world_gen.generate_chunk(start_x=0, start_y=0, size=5)
+            print("GENERATING NEW CHUNK AROUND 0,0")
+            # Generate a 5x5 chunk centered roughly on 0,0
+            generated_locations = self.world_gen.generate_chunk(start_x=-2, start_y=-2, size=5)
+            # Force Oakfield at 0,0
+            print(f"Generated {len(generated_locations)} locations.")
             for loc in generated_locations:
+                if loc.coordinates.x == 0 and loc.coordinates.y == 0:
+                    loc.name = "Oakfield Hub"
+                    loc.description = "You stand in the center of Oakfield, a bustling safe haven. A sturdy forge burns to the west, and a merchant's wagon is parked to the east. The wilderness calls from the north and south."
+                    loc.interactables = ["forge", "wagon"]
                 self.repo.create_location(loc)
             start_location = self.repo.get_location(start_id)
+            print("FINISHED GENERATING NEW CHUNK")
 
         if start_location:
             self._ensure_neighbors(start_location)
@@ -222,11 +231,61 @@ class GameService:
         time_msg = self._advance_time_and_events(world_time, player, 2)
         return combat_log + time_msg, player, location
 
+    def scout_area(self, player_id: str) -> Tuple[str, Player, Location, list]:
+        player, location = self._get_player_and_location(player_id)
+        if not location.coordinates:
+            return "You cannot orient yourself here.", player, location, []
+            
+        x, y, z = location.coordinates.x, location.coordinates.y, location.coordinates.z
+        radius = 5
+        nearby = self.repo.get_locations_in_radius(x, y, z, radius)
+        
+        if not nearby:
+            return "You scout the area but see nothing of interest.", player, location, []
+            
+        scouted_data = []
+        found_landmarks = []
+        for loc in nearby:
+            # Filter generic names starting with Biomes or Wilderness
+            if loc.name.startswith("Forest Area") or loc.name.startswith("Desert Area") or loc.name.startswith("Wilderness"):
+                continue
+                
+            nx, ny = loc.coordinates.x, loc.coordinates.y
+            dx = nx - x
+            dy = ny - y
+            
+            # Simple cardinal logic
+            dir_str = ""
+            if dy > 0: dir_str += "North"
+            elif dy < 0: dir_str += "South"
+            
+            if dx > 0: dir_str += "East" if not dir_str else "-East"
+            elif dx < 0: dir_str += "West" if not dir_str else "-West"
+            
+            # Distance
+            dist = max(abs(dx), abs(dy))
+            found_landmarks.append(f"- {loc.name} ({dist} chunks {dir_str})")
+            scouted_data.append({
+                "name": loc.name,
+                "distance": dist,
+                "direction": dir_str
+            })
+            
+        if not found_landmarks:
+            return "You scout the area but only see endless wilderness.", player, location, []
+            
+        msg = "You look around and spot notable landmarks:\n" + "\n".join(found_landmarks)
+        
+        # Scouting takes 2 ticks
+        world_time = self.repo.get_world_time()
+        time_msg = self._advance_time_and_events(world_time, player, 2)
+        return msg + time_msg, player, location, scouted_data
+
     def get_time_status(self) -> str:
         world_time = self.repo.get_world_time()
         return f"It is {world_time.get_time_string()}."
 
-    def process_command(self, player_id: str, command_text: str) -> Tuple[str, Player, Location]:
+    def process_command(self, player_id: str, command_text: str) -> Tuple:
         args = command_text.lower().split()
         if not args:
             player, location = self._get_player_and_location(player_id)
@@ -240,6 +299,8 @@ class GameService:
             return self.move_player(player_id, dir)
         elif action in ["look", "examine"]:
             return self.look(player_id)
+        elif action in ["scout", "radar", "map"]:
+            return self.scout_area(player_id)
         elif action in ["stats", "status"]:
             player, location = self._get_player_and_location(player_id)
             return str(player.stats), player, location

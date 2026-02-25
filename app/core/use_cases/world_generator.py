@@ -66,8 +66,22 @@ class WorldGenerator:
         for x in range(start_x, start_x + size):
             for y in range(start_y, start_y + size):
                 loc_id = f"loc_{x}_{y}_0"
-                name = f"{biome.capitalize()} Area {x},{y}"
-                desc = self._generate_description(biome, x, y)
+                
+                # Apply POI logic to chunks too
+                if x == 2 and y == 2:
+                    name = "Abandoned Outpost"
+                    desc = "A ruined stone structure. It looks like it was used for observation long ago."
+                elif x == 1 and y == 4:
+                    name = "Ancient Ruins"
+                    desc = "Crumbling pillars covered in glowing moss surround a cracked dais."
+                else:
+                    if random.random() < 0.05:
+                        poi_names = ["Mercenary Camp", "Forgotten Crypt", "Mystic Shrine", "Bandit Hideout", "Traveller's Rest"]
+                        name = random.choice(poi_names)
+                        desc = f"You stumble upon a {name}. It feels distinctly different from the surrounding {biome}."
+                    else:
+                        name = f"{biome.capitalize()} Area {x},{y}"
+                        desc = self._generate_description(biome, x, y)
                 
                 location = Location(
                     id=loc_id,
@@ -146,8 +160,24 @@ class WorldGenerator:
     def generate_single_location(self, x: int, y: int, z: int, biome: str = "forest") -> Location:
         """Generates a single location for infinite expansion."""
         loc_id = f"loc_{x}_{y}_{z}"
-        name = f"Wilderness {x},{y}"
-        desc = self._generate_description(biome, x, y)
+        
+        # Hardcode some initial POIs near spawn for radar testing
+        if x == 2 and y == 2 and z == 0:
+            name = "Abandoned Outpost"
+            desc = "A ruined stone structure. It looks like it was used for observation long ago."
+        elif x == 1 and y == 4 and z == 0:
+            name = "Ancient Ruins"
+            desc = "Crumbling pillars covered in glowing moss surround a cracked dais."
+        # Generic Expansion with 5% chance of random POI
+        else:
+            if z == 0 and random.random() < 0.05:
+                # Spawn a POI instead of Wilderness
+                poi_names = ["Mercenary Camp", "Forgotten Crypt", "Mystic Shrine", "Bandit Hideout", "Traveller's Rest"]
+                name = random.choice(poi_names)
+                desc = f"You stumble upon a {name}. It feels distinctly different from the surrounding {biome}."
+            else:
+                name = f"Wilderness {x},{y}"
+                desc = self._generate_description(biome, x, y)
         
         location = Location(
             id=loc_id,

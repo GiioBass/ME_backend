@@ -32,6 +32,7 @@ class GameResponse(BaseModel):
     player: dict
     location: dict
     time: dict
+    scouted_locations: list | None = None
 
 def get_game_service(repo: GameRepository) -> GameService:
     return GameService(repo)
@@ -88,13 +89,16 @@ def serialize_time(world_time) -> dict:
         "is_night": world_time.is_night()
     }
 
-def format_response(msg: str, player: dict, location: dict, world_time: dict) -> dict:
-    return {
+def format_response(msg: str, player: dict, location: dict, world_time: dict, scouted: list = None) -> dict:
+    resp = {
         "message": msg,
         "player": serialize_player(player),
         "location": location.model_dump() if hasattr(location, "model_dump") else location,
         "time": serialize_time(world_time)
     }
+    if scouted is not None:
+        resp["scouted_locations"] = scouted
+    return resp
 
 @router.post("/start", response_model=GameResponse)
 def start_game(name: str):
@@ -123,9 +127,12 @@ def login_game(req: LoginRequest):
 def send_command(req: CommandRequest):
     service = GameService(_repo)
     try:
-        msg, player, location = service.process_command(req.player_id, req.command)
+        res = service.process_command(req.player_id, req.command)
+        msg, player, location = res[:3]
+        scouted = res[3] if len(res) > 3 else None
+        
         world_time = _repo.get_world_time()
-        return format_response(msg, player, location, world_time)
+        return format_response(msg, player, location, world_time, scouted)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
@@ -186,6 +193,16 @@ def action_attack(req: AttackRequest):
         msg, player, location = service.attack_enemy(req.player_id, req.target_name)
         world_time = _repo.get_world_time()
         return format_response(msg, player, location, world_time)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+@router.post("/action/scout", response_model=GameResponse)
+def action_scout(req: PlayerIdRequest):
+    service = GameService(_repo)
+    try:
+        msg, player, location, scouted = service.scout_area(req.player_id)
+        world_time = _repo.get_world_time()
+        return format_response(msg, player, location, world_time, scouted)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 

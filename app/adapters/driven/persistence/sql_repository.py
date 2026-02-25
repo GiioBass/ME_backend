@@ -57,6 +57,7 @@ class SQLGameRepository(GameRepository):
             pass
             # Wait, I can't easily change schema without dropping DB (which is fine for now).
             
+        with Session(engine) as session:
             # Alternative: Load all locations and filter. (Prototyping)
             locs = session.exec(select(LocationDB)).all()
             for loc in locs:
@@ -65,6 +66,24 @@ class SQLGameRepository(GameRepository):
                     if loc.coordinates.get("x") == x and loc.coordinates.get("y") == y and loc.coordinates.get("z") == z:
                         return loc.to_domain()
             return None
+
+    def get_locations_in_radius(self, x: int, y: int, z: int, radius: int) -> list[Location]:
+        with Session(engine) as session:
+            locs = session.exec(select(LocationDB)).all()
+            results = []
+            for loc in locs:
+                if loc.coordinates:
+                    lx = loc.coordinates.get("x")
+                    ly = loc.coordinates.get("y")
+                    lz = loc.coordinates.get("z")
+                    if lz == z and lx is not None and ly is not None:
+                        # Simple Chebyshev distance for grid/chunks
+                        if abs(lx - x) <= radius and abs(ly - y) <= radius:
+                            # Exclude self
+                            if lx == x and ly == y:
+                                continue
+                            results.append(loc.to_domain())
+            return results
 
     def get_world_time(self):
         from app.core.domain.time_system import WorldTime

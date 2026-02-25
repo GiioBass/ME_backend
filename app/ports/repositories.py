@@ -29,6 +29,10 @@ class GameRepository(ABC):
         pass
 
     @abstractmethod
+    def get_locations_in_radius(self, x: int, y: int, z: int, radius: int) -> list[Location]:
+        pass
+
+    @abstractmethod
     def get_world_time(self) -> 'WorldTime':
         pass
 

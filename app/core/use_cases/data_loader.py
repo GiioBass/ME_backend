@@ -17,6 +17,9 @@ class DataLoader:
         with open(file_path, "r", encoding="utf-8") as f:
             data = json.load(f)
             for loc_data in data:
+                # loc_0_0_0 must be generated through the world_generator.generate_chunk now
+                if loc_data["id"] == "loc_0_0_0":
+                    continue
                 # Check if it already exists
                 existing = self.repo.get_location(loc_data["id"])
                 if not existing:
