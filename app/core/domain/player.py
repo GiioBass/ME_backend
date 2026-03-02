@@ -8,11 +8,14 @@ class Stats(BaseModel):
     max_hp: int = 100
     mp: int = 50
     max_mp: int = 50
+    hunger: int = 100
+    thirst: int = 100
     strength: int = 10
     agility: int = 10
     intelligence: int = 10
     level: int = 1
     xp: int = 0
+    max_weight: float = 50.0
 
 class Player(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -21,6 +24,13 @@ class Player(BaseModel):
     current_location_id: str
     inventory: List[Item] = []
     equipment: Dict[str, Optional[Item]] = Field(default_factory=lambda: {"weapon": None, "armor": None})
+    waypoints: Dict[str, str] = Field(default_factory=dict) # Name -> location_id
+    
+    @property
+    def current_weight(self) -> float:
+        total = sum(item.weight for item in self.inventory)
+        total += sum(item.weight for item in self.equipment.values() if item is not None)
+        return total
     
     def equip(self, item: Item) -> str:
         if not item.equip_slot:
@@ -64,6 +74,19 @@ class Player(BaseModel):
     
     def has_item(self, item_name: str) -> bool:
         return any(i.name.lower() == item_name.lower() for i in self.inventory)
+
+    def add_waypoint(self, name: str, location_id: str) -> str:
+        if name in self.waypoints:
+            self.waypoints[name] = location_id
+            return f"Waypoint '{name}' updated."
+        self.waypoints[name] = location_id
+        return f"Waypoint '{name}' created."
+        
+    def remove_waypoint(self, name: str) -> str:
+        if name in self.waypoints:
+            del self.waypoints[name]
+            return f"Waypoint '{name}' removed."
+        return f"Waypoint '{name}' not found."
 
     def gain_xp(self, amount: int):
         self.stats.xp += amount

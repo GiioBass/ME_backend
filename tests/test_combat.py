@@ -10,7 +10,7 @@ def test_combat_flow():
     service = GameService(repo)
     
     # 1. Setup Player & Location
-    player = service.create_new_player("Warrior")
+    player, _ = service.create_new_player("Warrior")
     loc = repo.get_location(player.current_location_id)
     
     # 2. Add Enemy Manually
@@ -26,7 +26,7 @@ def test_combat_flow():
     # Player strength 10 -> damage 5. Enemy HP 10 -> 5.
     msg, p, l = service.process_command(player.id, "attack Goblin")
     assert "hit Goblin for 5" in msg
-    assert "Goblin attacks you" in msg
+    assert "Goblin retaliates for" in msg
     
     # Check Persistence
     updated_loc = repo.get_location(player.current_location_id)
@@ -48,7 +48,7 @@ def test_combat_flow():
 def test_player_death():
     repo = InMemoryGameRepository()
     service = GameService(repo)
-    player = service.create_new_player("Victim")
+    player, _ = service.create_new_player("Victim")
     loc = repo.get_location(player.current_location_id)
     
     # Boss Enemy

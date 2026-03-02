@@ -13,8 +13,7 @@ I have successfully implemented the core structure for the Text RPG backend usin
     -   `GameService`: Orchestrates the game flow.
     -   `CommandParser`: Handles text input parsing (e.g., "go north", "look").
     -   `WorldGenerator`: Creates a 5x5 chunk of connected locations (Forest biome) upon game start.
-
-    -   `WorldGenerator`: Creates a 5x5 chunk of connected locations (Forest biome) upon game start.
+    -   `StaticAreaLoader`: Loads predefined static locations from `app/data/static_areas.json` (such as the Oakfield Hub) and injects them into the generated world.
 
 3.  **Persistence Layer** (`app/adapters/driven/persistence/`)
     -   `SQLGameRepository`: Uses **SQLModel** and **SQLite** to persist game state to `database.db`.

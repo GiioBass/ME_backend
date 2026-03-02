@@ -30,12 +30,22 @@ class MockRepository:
                 return loc
         return None
 
+    def get_world_time(self):
+        from app.core.domain.time_system import WorldTime
+        return WorldTime()
+        
+    def save_world_time(self, t):
+        pass
+
+    def get_player_by_name(self, name):
+        return None
+
 def test_ensure_neighbors_on_start():
     repo = MockRepository()
     service = GameService(repo)
     
     # Create player (should generate start + neighbors)
-    player = service.create_new_player("Explorer")
+    player, _ = service.create_new_player("Explorer")
     
     # Start usually at 0,0,0
     start_loc = repo.get_location_by_coordinates(0, 0, 0)
@@ -83,7 +93,9 @@ def test_infinite_expansion_on_move():
     # Check if 0,2 was generated
     loc_0_2 = repo.get_location_by_coordinates(0, 2, 0)
     assert loc_0_2 is not None
-    assert "Forest Area" in loc_0_2.name # Default biome name
+    # Can be Forest OR a water source (Lake, River, Stream, Well)
+    valid_names = ["Forest", "River", "Stream", "Lake", "Well"]
+    assert any(name in loc_0_2.name for name in valid_names)
     
     # Check link
     assert "north" in final_loc.exits

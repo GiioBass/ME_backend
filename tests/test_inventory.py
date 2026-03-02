@@ -10,10 +10,11 @@ def test_inventory_flow():
     service = GameService(repo)
     
     # Setup: Player and Location
-    player = service.create_new_player("Gatherer")
+    player, _ = service.create_new_player("Gatherer")
     loc = repo.get_location(player.current_location_id)
     
     # 1. Add item to location manually (simulating generation)
+    loc.items = [] # Clear any auto-generated items (like Empty Flask)
     sword = Item(name="Rusty Sword", description="Old sword", item_type="weapon", value=10)
     loc.add_item(sword)
     repo.create_location(loc) # Update repo
@@ -24,7 +25,7 @@ def test_inventory_flow():
     
     # 3. Take Item
     msg, p, l = service.process_command(player.id, "take Rusty Sword")
-    assert "picked up Rusty Sword" in msg
+    assert "picked up 1x Rusty Sword" in msg
     
     # Verify persistence
     updated_player = repo.get_player(player.id)
@@ -37,11 +38,11 @@ def test_inventory_flow():
     # 4. Inventory
     msg, _, _ = service.process_command(player.id, "inventory")
     assert "Rusty Sword" in msg
-    assert "weapon" in msg
+    assert "WEAPON" in msg
     
     # 5. Drop Item
     msg, _, _ = service.process_command(player.id, "drop Rusty Sword")
-    assert "dropped Rusty Sword" in msg
+    assert "dropped 1x Rusty Sword" in msg
     
     # Verify persistence
     updated_player = repo.get_player(player.id)

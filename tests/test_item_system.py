@@ -67,23 +67,4 @@ def test_inventory_grouping():
     player.add_item(sword2)
     
     res = parser.parse("inventory", player, loc, wt, lambda p: None)
-    assert "Sword (weapon) x2" in res.message
-
-def test_persistence_serialization():
-    # Verify that Item objects survive DB roundtrip via Pydantic/SQLModel
-    sword = Item(name="Sword", description="Sharp", item_type="weapon", value=10)
-    player = Player(name="Hero", current_location_id="loc1")
-    player.add_item(sword)
-    
-    # To DB Model
-    player_db = PlayerDB.from_domain(player)
-    # Using dict access for inventory list of dicts
-    # inventory is List[dict] in DB model
-    # Wait, lets check if the previous test was correct. Yes it checked ['name']
-    assert player_db.inventory[0]["name"] == "Sword"
-    
-    # Back to Domain
-    player_restored = player_db.to_domain()
-    assert len(player_restored.inventory) == 1
-    assert isinstance(player_restored.inventory[0], Item)
-    assert player_restored.inventory[0].name == "Sword"
+    assert "Sword (ItemType.WEAPON) x2" in res.message

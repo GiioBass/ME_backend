@@ -16,7 +16,10 @@ class Location(BaseModel):
     exits: Dict[str, str] = {}  # direction -> location_id interaction
     interactables: List[str] = [] # List of interactable object names not picked up
     items: List[Item] = []
+    camp_storage: List[Item] = []
     coordinates: Optional[Coordinates] = None
+    is_dark: bool = False
+    trap_damage: int = 0
 
     def add_item(self, item: Item):
         self.items.append(item)
@@ -25,6 +28,15 @@ class Location(BaseModel):
         for i, item in enumerate(self.items):
             if item.id == item_id or item.name.lower() == item_id.lower():
                 return self.items.pop(i)
+        return None
+
+    def store_camp_item(self, item: Item):
+        self.camp_storage.append(item)
+        
+    def retrieve_camp_item(self, item_name: str) -> Optional[Item]:
+        for i, item in enumerate(self.camp_storage):
+            if item.id == item_name or item.name.lower() == item_name.lower():
+                return self.camp_storage.pop(i)
         return None
 
     # Forward reference handled by not typing explicitly or using string

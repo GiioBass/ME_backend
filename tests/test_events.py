@@ -9,7 +9,7 @@ def test_time_advancement():
     service = GameService(repo)
     
     # Setup
-    player = service.create_new_player("TimeTraveler")
+    player, _ = service.create_new_player("TimeTraveler")
     
     # Initial Time
     time = repo.get_world_time()
@@ -31,7 +31,7 @@ def test_time_advancement():
 def test_night_cycle():
     repo = InMemoryGameRepository()
     service = GameService(repo)
-    player = service.create_new_player("NightOwl")
+    player, _ = service.create_new_player("NightOwl")
     
     # Advanced to night (20:00 = 20 * 60 = 1200 ticks)
     time = repo.get_world_time()

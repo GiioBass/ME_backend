@@ -1,0 +1,89 @@
+[
+    {
+        "id": "bandit_camp",
+        "name": "Bandit Camp",
+        "description": "A rudimentary fortified camp. It smells like roasted meat and danger.",
+        "allowed_biomes": [
+            "forest",
+            "desert"
+        ],
+        "guaranteed_enemies": [
+            {
+                "name": "Bandit",
+                "hp": 25,
+                "attack": 5,
+                "xp_reward": 25
+            }
+        ],
+        "guaranteed_items": [
+            {
+                "name": "Small Chest",
+                "description": "A locked wooden chest. It surely contained something valuable.",
+                "type": "MATERIAL",
+                "weight": 2.0,
+                "value": 50
+            }
+        ]
+    },
+    {
+        "id": "mystic_shrine",
+        "name": "Mystic Shrine",
+        "description": "An ancient altar surrounded by glowing stones. You feel a magical energy in the air.",
+        "allowed_biomes": [
+            "forest"
+        ],
+        "guaranteed_enemies": [],
+        "guaranteed_items": [
+            {
+                "name": "Glowing Dust",
+                "description": "A mysterious dust gathered from the altar.",
+                "type": "MATERIAL",
+                "weight": 0.1,
+                "value": 100
+            }
+        ]
+    },
+    {
+        "id": "forgotten_crypt",
+        "name": "Forgotten Crypt",
+        "description": "A stone entrance half sunk into the earth that exhales freezing air.",
+        "allowed_biomes": [
+            "forest",
+            "desert"
+        ],
+        "guaranteed_enemies": [
+            {
+                "name": "Skeleton Warrior",
+                "hp": 30,
+                "attack": 6,
+                "xp_reward": 35
+            }
+        ],
+        "guaranteed_items": [
+            {
+                "name": "Ancient Bone",
+                "description": "A dense bone that is cold to the touch.",
+                "type": "MATERIAL",
+                "weight": 1.5,
+                "value": 20
+            }
+        ]
+    },
+    {
+        "id": "mercenary_camp",
+        "name": "Mercenary Camp",
+        "description": "Military tents organized efficiently. There are loose weapons closely guarded.",
+        "allowed_biomes": [
+            "desert"
+        ],
+        "guaranteed_enemies": [
+            {
+                "name": "Deserter Mercenary",
+                "hp": 40,
+                "attack": 8,
+                "xp_reward": 45
+            }
+        ],
+        "guaranteed_items": []
+    }
+]

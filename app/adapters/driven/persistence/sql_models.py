@@ -1,94 +1,128 @@
 from typing import Optional, List, Dict, Any
-from sqlmodel import SQLModel, Field, JSON
-from app.core.domain.player import Player
+from sqlmodel import SQLModel, Field, Relationship, JSON
+from app.core.domain.player import Player, Stats
 from app.core.domain.location import Location, Coordinates
-from app.core.domain.item import Item
+from app.core.domain.item import Item, ItemType
+from app.core.domain.enemy import Enemy
+import uuid
+
+# --- Shared Item Model ---
+class ItemDB(SQLModel, table=True):
+    id: str = Field(primary_key=True)
+    name: str
+    description: str
+    item_type: str
+    value: int = 0
+    weight: float = 0.0
+    durability: Optional[int] = None
+    max_durability: Optional[int] = None
+    equip_slot: Optional[str] = None
+    restore_hp: int = 0
+    restore_hp_pct: float = 0.0
+    restore_mp: int = 0
+    restore_mp_pct: float = 0.0
+    restore_hunger: int = 0
+    restore_thirst: int = 0
+    is_dropped: bool = False
+    is_light_source: bool = False
+    
+    stat_bonuses: Dict[str, int] = Field(default={}, sa_type=JSON)
+    effects: List[Dict[str, Any]] = Field(default=[], sa_type=JSON)
+
+    def to_domain(self) -> Item:
+        return Item(**self.model_dump())
+
+    @classmethod
+    def from_domain(cls, item: Item) -> "ItemDB":
+        return cls(**item.model_dump())
+
+# --- Player Related Models ---
+
+class PlayerStatsDB(SQLModel, table=True):
+    player_id: str = Field(primary_key=True, foreign_key="playerdb.id")
+    hp: int = 100
+    max_hp: int = 100
+    mp: int = 50
+    max_mp: int = 50
+    hunger: int = 100
+    thirst: int = 100
+    strength: int = 10
+    agility: int = 10
+    intelligence: int = 10
+    level: int = 1
+    xp: int = 0
+    max_weight: float = 50.0
+
+class InventoryItemDB(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    player_id: str = Field(foreign_key="playerdb.id", index=True)
+    item_id: str = Field(foreign_key="itemdb.id")
+    quantity: int = 1
+
+class EquipmentDB(SQLModel, table=True):
+    player_id: str = Field(primary_key=True, foreign_key="playerdb.id")
+    weapon_id: Optional[str] = Field(default=None, foreign_key="itemdb.id")
+    armor_id: Optional[str] = Field(default=None, foreign_key="itemdb.id")
+
+class WaypointDB(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    player_id: str = Field(foreign_key="playerdb.id", index=True)
+    name: str
+    location_id: str
 
 class PlayerDB(SQLModel, table=True):
     id: str = Field(primary_key=True)
-    name: str
+    name: str = Field(index=True, unique=True)
     current_location_id: str
-    stats: Dict = Field(default={}, sa_type=JSON)
-    inventory: List[dict] = Field(default=[], sa_type=JSON)
-    equipment: Dict[str, Optional[dict]] = Field(default={}, sa_type=JSON)
 
-    def to_domain(self) -> Player:
-        # Reconstruct Domain Player from DB Model
-        # Note: Stats and Inventory need proper parsing if they are complex objects
-        # For now, simplistic mapping
-        p = Player(
-            id=self.id,
-            name=self.name,
-            current_location_id=self.current_location_id,
-            # stats=... we need to ensure Stats model can accept dict
-            # inventory=... map dicts back to Items
-        )
-        # Manually set stats if needed, or rely on Pydantic
-        if self.stats:
-            for k, v in self.stats.items():
-                setattr(p.stats, k, v)
-        
-        if self.inventory:
-            p.inventory = [Item(**item_data) for item_data in self.inventory]
-            
-        if self.equipment:
-            p.equipment = {slot: (Item(**item_data) if item_data else None) for slot, item_data in self.equipment.items()}
-            
-        return p
-
-    @classmethod
-    def from_domain(cls, player: Player) -> "PlayerDB":
-        return cls(
-            id=player.id,
-            name=player.name,
-            current_location_id=player.current_location_id,
-            stats=player.stats.model_dump(),
-            inventory=[item.model_dump() for item in player.inventory],
-            equipment={slot: (item.model_dump() if item else None) for slot, item in player.equipment.items()}
-        )
+# --- Location Related Models ---
 
 class LocationDB(SQLModel, table=True):
     id: str = Field(primary_key=True)
     name: str
     description: str
-    exits: Dict = Field(default={}, sa_type=JSON)
-    interactables: List[str] = Field(default=[], sa_type=JSON)
-    items: List[dict] = Field(default=[], sa_type=JSON)
-    enemies: List[dict] = Field(default=[], sa_type=JSON)
-    coordinates: Optional[Dict] = Field(default=None, sa_type=JSON)
+    x: int = Field(index=True)
+    y: int = Field(index=True)
+    z: int = Field(index=True)
+    is_dark: bool = False
+    trap_damage: int = 0
 
-    def to_domain(self) -> Location:
-        from app.core.domain.enemy import Enemy
-        
-        loc = Location(
-            id=self.id,
-            name=self.name,
-            description=self.description,
-            exits=self.exits,
-            interactables=self.interactables,
-            items=[Item(**i) for i in self.items]
-        )
-        if self.enemies:
-            loc.enemies = [Enemy(**e) for e in self.enemies]
-            
-        if self.coordinates:
-            loc.coordinates = Coordinates(**self.coordinates)
-        return loc
+class LocationExitDB(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    location_id: str = Field(foreign_key="locationdb.id", index=True)
+    direction: str
+    destination_id: str
 
-    @classmethod
-    def from_domain(cls, location: Location) -> "LocationDB":
-        return cls(
-            id=location.id,
-            name=location.name,
-            description=location.description,
-            exits=location.exits,
-            interactables=location.interactables,
-            items=[item.model_dump() for item in location.items],
-            enemies=[e.model_dump() for e in location.enemies],
-            coordinates=location.coordinates.model_dump() if location.coordinates else None
-        )
+class LocationInteractableDB(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    location_id: str = Field(foreign_key="locationdb.id", index=True)
+    name: str
 
+class LocationItemDB(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    location_id: str = Field(foreign_key="locationdb.id", index=True)
+    item_id: str = Field(foreign_key="itemdb.id")
+    is_camp_storage: bool = False
+
+class EnemyDB(SQLModel, table=True):
+    id: str = Field(primary_key=True)
+    name: str
+    description: str
+    hp: int
+    max_hp: int
+    attack: int
+    xp_reward: int
+    is_dead: bool = False
+    is_boss: bool = False
+    level: int = 1
+    loot: List[dict] = Field(default=[], sa_type=JSON)
+
+class LocationEnemyDB(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    location_id: str = Field(foreign_key="locationdb.id", index=True)
+    enemy_id: str = Field(foreign_key="enemydb.id")
+
+# --- World State ---
 class WorldStateDB(SQLModel, table=True):
     id: str = Field(primary_key=True, default="world_state")
     total_ticks: int = 0
-

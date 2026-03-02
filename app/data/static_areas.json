@@ -1,0 +1,17 @@
+[
+    {
+        "id": "loc_0_0_0",
+        "name": "Oakfield Hub",
+        "description": "You stand in the center of Oakfield, a bustling safe haven. A sturdy forge burns to the west, and a merchant's wagon is parked to the east. The wilderness calls from the north and south.",
+        "coordinates": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+        },
+        "interactables": [
+            "forge",
+            "wagon"
+        ],
+        "exits": {}
+    }
+]

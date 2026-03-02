@@ -31,6 +31,8 @@ class CommandParser:
             return self._handle_inventory(player, location)
         elif action in ["attack", "fight", "hit", "kill"]:
             return self._handle_attack(args, player, location, save_player_callback, save_location_callback)
+        elif action in ["fill", "refill"]:
+            return self._handle_fill(args, player, location, save_player_callback)
         elif action in ["time", "clock", "date"]:
             return CommandResult(f"It is {world_time.get_time_string()}.", player, location)
         
@@ -185,3 +187,30 @@ class CommandParser:
             return CommandResult(f"You travel {direction}...", player, location, time_cost=10)
         else:
             return CommandResult("You can't go that way.", player, location)
+
+    def _handle_fill(self, args: List[str], player: Player, location: Location, save_player) -> CommandResult:
+        if "water_source" not in location.interactables:
+             return CommandResult("There is no water source here.", player, location)
+             
+        # Look for a Water Flask (Material? or new type?)
+        # For now let's assume it's an item named "Water Flask (Empty)" or similar
+        found_flask = None
+        for item in player.inventory:
+            if "Empty" in item.name and "Flask" in item.name:
+                found_flask = item
+                break
+        
+        if not found_flask:
+            return CommandResult("You don't have an empty flask to fill.", player, location)
+
+        # Transform it
+        from app.core.domain.item import ItemType
+        found_flask.name = "Water Flask (Full)"
+        found_flask.description = "A flask filled with fresh water."
+        found_flask.item_type = ItemType.CONSUMABLE
+        found_flask.restore_thirst = 30
+        found_flask.restore_hunger = 0
+        found_flask.restore_hp = 0
+        
+        if save_player: save_player(player)
+        return CommandResult(f"You filled the {found_flask.name} from the {location.name}.", player, location, time_cost=2)

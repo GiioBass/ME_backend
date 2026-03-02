@@ -12,19 +12,15 @@ def test_cave_generation():
     with patch('random.random', return_value=0.05):
         locations = generator.generate_chunk(0, 0, size=1)
         
-    # Should generate surface + cave
-    assert len(locations) == 2
+    # Should generate surface only
+    assert len(locations) == 1
     
-    surface = next(l for l in locations if l.coordinates.z == 0)
-    cave = next(l for l in locations if l.coordinates.z == -1)
+    surface = locations[0]
     
     assert surface.coordinates.z == 0
-    assert cave.coordinates.z == -1
     
     assert "down" in surface.exits
-    assert surface.exits["down"] == cave.id
-    assert "up" in cave.exits
-    assert cave.exits["up"] == surface.id
+    assert surface.exits["down"].startswith("dng_")
 
 def test_vertical_movement_commands():
     parser = CommandParser()

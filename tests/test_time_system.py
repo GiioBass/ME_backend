@@ -57,7 +57,7 @@ def test_game_service_time_integration():
     service = GameService(repo)
     
     # Setup player
-    player = service.create_new_player("TimeTraveler")
+    player, _ = service.create_new_player("TimeTraveler")
     
     # 1. Check Time Command
     msg, _, _ = service.process_command(player.id, "time")

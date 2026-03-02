@@ -11,6 +11,7 @@ class Enemy(BaseModel):
     attack: int
     xp_reward: int
     is_dead: bool = False
+    is_boss: bool = False
 
     def take_damage(self, amount: int) -> int:
         """Takes damage and returns actual damage taken."""

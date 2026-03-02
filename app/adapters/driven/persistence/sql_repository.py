@@ -1,104 +1,240 @@
-from typing import Optional
-from sqlmodel import Session, select
+from typing import Optional, List
+from sqlmodel import Session, select, delete
 from app.ports.repositories import GameRepository
-from app.core.domain.player import Player
-from app.core.domain.location import Location
-from app.adapters.driven.persistence.sql_models import PlayerDB, LocationDB
+from app.core.domain.player import Player, Stats
+from app.core.domain.location import Location, Coordinates
+from app.core.domain.item import Item
+from app.core.domain.enemy import Enemy
+from app.adapters.driven.persistence.sql_models import (
+    PlayerDB, PlayerStatsDB, InventoryItemDB, EquipmentDB, WaypointDB,
+    LocationDB, LocationExitDB, LocationInteractableDB, LocationItemDB,
+    EnemyDB, LocationEnemyDB, ItemDB, WorldStateDB
+)
 from app.adapters.driven.persistence.db_config import engine
 
 class SQLGameRepository(GameRepository):
+    def __init__(self, db_engine=None):
+        self.engine = db_engine or engine
+
+    # --- Player Persistence ---
     def get_player(self, player_id: str) -> Optional[Player]:
-        with Session(engine) as session:
-            player_db = session.get(PlayerDB, player_id)
-            if player_db:
-                return player_db.to_domain()
-            return None
+        with Session(self.engine) as session:
+            db_player = session.get(PlayerDB, player_id)
+            if not db_player: return None
+            
+            # Stats
+            db_stats = session.get(PlayerStatsDB, player_id)
+            stats = Stats(**db_stats.model_dump()) if db_stats else Stats()
+            
+            # Inventory
+            inventory = []
+            inv_items = session.exec(
+                select(InventoryItemDB, ItemDB)
+                .join(ItemDB, InventoryItemDB.item_id == ItemDB.id)
+                .where(InventoryItemDB.player_id == player_id)
+            ).all()
+            for inv_link, db_item in inv_items:
+                item = db_item.to_domain()
+                # For now we don't have qty in domain Item, but we could add it back.
+                # If qty > 1, we might need to duplicate or handle it.
+                for _ in range(inv_link.quantity):
+                    inventory.append(item)
+            
+            # Equipment
+            equipment = {"weapon": None, "armor": None}
+            db_equip = session.get(EquipmentDB, player_id)
+            if db_equip:
+                if db_equip.weapon_id:
+                    item_db = session.get(ItemDB, db_equip.weapon_id)
+                    if item_db: equipment["weapon"] = item_db.to_domain()
+                if db_equip.armor_id:
+                    item_db = session.get(ItemDB, db_equip.armor_id)
+                    if item_db: equipment["armor"] = item_db.to_domain()
+            
+            # Waypoints
+            waypoints = {}
+            db_waypoints = session.exec(select(WaypointDB).where(WaypointDB.player_id == player_id)).all()
+            for wp in db_waypoints:
+                waypoints[wp.name] = wp.location_id
+                
+            player = Player(
+                id=db_player.id,
+                name=db_player.name,
+                current_location_id=db_player.current_location_id,
+                stats=stats,
+                inventory=inventory,
+                equipment=equipment,
+                waypoints=waypoints
+            )
+            return player
 
     def get_player_by_name(self, name: str) -> Optional[Player]:
-        with Session(engine) as session:
-            statement = select(PlayerDB).where(PlayerDB.name == name)
-            player_db = session.exec(statement).first()
-            if player_db:
-                return player_db.to_domain()
+        with Session(self.engine) as session:
+            db_player = session.exec(select(PlayerDB).where(PlayerDB.name == name)).first()
+            if db_player:
+                return self.get_player(db_player.id)
             return None
 
     def save_player(self, player: Player) -> Player:
-        with Session(engine) as session:
-            # Check if exists to update, or just merge
-            # sqlmodel merge is tricky with non-ORM objects, but we have PlayerDB
-            player_db = PlayerDB.from_domain(player)
-            session.merge(player_db)
+        with Session(self.engine) as session:
+            # 1. Save Player Core
+            db_player = PlayerDB(id=player.id, name=player.name, current_location_id=player.current_location_id)
+            session.merge(db_player)
+            
+            # 2. Save Stats
+            db_stats = PlayerStatsDB(player_id=player.id, **player.stats.model_dump())
+            session.merge(db_stats)
+            
+            # 3. Handle Items (Inventory & Equipment)
+            all_items = player.inventory + [i for i in player.equipment.values() if i]
+            for item in all_items:
+                session.merge(ItemDB.from_domain(item))
+            
+            # 4. Save Inventory (Clear and Rebuild)
+            session.exec(delete(InventoryItemDB).where(InventoryItemDB.player_id == player.id))
+            from collections import Counter
+            item_counts = Counter(item.id for item in player.inventory)
+            for item_id, qty in item_counts.items():
+                session.add(InventoryItemDB(player_id=player.id, item_id=item_id, quantity=qty))
+                
+            # 5. Save Equipment
+            db_equip = EquipmentDB(
+                player_id=player.id,
+                weapon_id=player.equipment.get("weapon").id if player.equipment.get("weapon") else None,
+                armor_id=player.equipment.get("armor").id if player.equipment.get("armor") else None
+            )
+            session.merge(db_equip)
+            
+            # 6. Save Waypoints
+            session.exec(delete(WaypointDB).where(WaypointDB.player_id == player.id))
+            for name, loc_id in player.waypoints.items():
+                session.add(WaypointDB(player_id=player.id, name=name, location_id=loc_id))
+            
             session.commit()
             return player
 
+    # --- Location Persistence ---
     def get_location(self, location_id: str) -> Optional[Location]:
-        with Session(engine) as session:
-            loc_db = session.get(LocationDB, location_id)
-            if loc_db:
-                return loc_db.to_domain()
-            return None
-    
-    def create_location(self, location: Location) -> Location:
-        with Session(engine) as session:
-            loc_db = LocationDB.from_domain(location)
-            session.merge(loc_db) # Use merge to handle potential duplicates if we regenerate?
+        with Session(self.engine) as session:
+            db_loc = session.get(LocationDB, location_id)
+            if not db_loc: return None
+            
+            # Exits
+            exits = {e.direction: e.destination_id for e in session.exec(select(LocationExitDB).where(LocationExitDB.location_id == location_id)).all()}
+            
+            # Interactables
+            interactables = [i.name for i in session.exec(select(LocationInteractableDB).where(LocationInteractableDB.location_id == location_id)).all()]
+            
+            # Items
+            items = []
+            camp_storage = []
+            loc_items = session.exec(
+                select(LocationItemDB, ItemDB)
+                .join(ItemDB, LocationItemDB.item_id == ItemDB.id)
+                .where(LocationItemDB.location_id == location_id)
+            ).all()
+            for link, db_item in loc_items:
+                if link.is_camp_storage:
+                    camp_storage.append(db_item.to_domain())
+                else:
+                    items.append(db_item.to_domain())
+            
+            # Enemies
+            enemies = []
+            loc_enemies = session.exec(
+                select(LocationEnemyDB, EnemyDB)
+                .join(EnemyDB, LocationEnemyDB.enemy_id == EnemyDB.id)
+                .where(LocationEnemyDB.location_id == location_id)
+            ).all()
+            for link, db_enemy in loc_enemies:
+                enemies.append(Enemy(**db_enemy.model_dump()))
+                
+            return Location(
+                id=db_loc.id,
+                name=db_loc.name,
+                description=db_loc.description,
+                exits=exits,
+                interactables=interactables,
+                items=items,
+                camp_storage=camp_storage,
+                enemies=enemies,
+                coordinates=Coordinates(x=db_loc.x, y=db_loc.y, z=db_loc.z),
+                is_dark=db_loc.is_dark,
+                trap_damage=db_loc.trap_damage
+            )
+
+    def create_location(self, location: Location):
+        with Session(self.engine) as session:
+            # 1. Base Location
+            db_loc = LocationDB(
+                id=location.id,
+                name=location.name,
+                description=location.description,
+                x=location.coordinates.x if location.coordinates else 0,
+                y=location.coordinates.y if location.coordinates else 0,
+                z=location.coordinates.z if location.coordinates else 0,
+                is_dark=location.is_dark,
+                trap_damage=location.trap_damage
+            )
+            session.merge(db_loc)
+            
+            # 2. Exits
+            session.exec(delete(LocationExitDB).where(LocationExitDB.location_id == location.id))
+            for direction, dest in location.exits.items():
+                session.add(LocationExitDB(location_id=location.id, direction=direction, destination_id=dest))
+                
+            # 3. Interactables
+            session.exec(delete(LocationInteractableDB).where(LocationInteractableDB.location_id == location.id))
+            for name in location.interactables:
+                session.add(LocationInteractableDB(location_id=location.id, name=name))
+                
+            # 4. Items (Ground and Storage)
+            session.exec(delete(LocationItemDB).where(LocationItemDB.location_id == location.id))
+            for item in location.items:
+                session.merge(ItemDB.from_domain(item))
+                session.add(LocationItemDB(location_id=location.id, item_id=item.id, is_camp_storage=False))
+            for item in location.camp_storage:
+                session.merge(ItemDB.from_domain(item))
+                session.add(LocationItemDB(location_id=location.id, item_id=item.id, is_camp_storage=True))
+                
+            # 5. Enemies
+            session.exec(delete(LocationEnemyDB).where(LocationEnemyDB.location_id == location.id))
+            for enemy in location.enemies:
+                session.merge(EnemyDB(**enemy.model_dump()))
+                session.add(LocationEnemyDB(location_id=location.id, enemy_id=enemy.id))
+                
             session.commit()
-            return location
 
     def get_location_by_coordinates(self, x: int, y: int, z: int) -> Optional[Location]:
-        with Session(engine) as session:
-            # This is tricky with JSON fields in SQLite/SQLModel without specific extensions
-            # But since we are using python, we can fetch all (bad perf) or use a filter if we used separate columns.
-            # OPTIMIZATION: We should probably promote x,y,z to real columns in LocationDB instead of JSON.
-            # For now, let's try to filter using simple python logic if the DB is small, 
-            # OR better: Add columns to LocationDB?
-            # User didn't ask for schema migration, but for "Infinite Gen".
-            # Let's add columns to LocationDB to make this efficient.
-            pass
-            # Wait, I can't easily change schema without dropping DB (which is fine for now).
-            
-        with Session(engine) as session:
-            # Alternative: Load all locations and filter. (Prototyping)
-            locs = session.exec(select(LocationDB)).all()
-            for loc in locs:
-                if loc.coordinates:
-                    # loc.coordinates is a Dict from JSON
-                    if loc.coordinates.get("x") == x and loc.coordinates.get("y") == y and loc.coordinates.get("z") == z:
-                        return loc.to_domain()
+        with Session(self.engine) as session:
+            # Optimized direct query!
+            db_loc = session.exec(select(LocationDB).where(LocationDB.x == x, LocationDB.y == y, LocationDB.z == z)).first()
+            if db_loc:
+                return self.get_location(db_loc.id)
             return None
 
     def get_locations_in_radius(self, x: int, y: int, z: int, radius: int) -> list[Location]:
-        with Session(engine) as session:
-            locs = session.exec(select(LocationDB)).all()
-            results = []
-            for loc in locs:
-                if loc.coordinates:
-                    lx = loc.coordinates.get("x")
-                    ly = loc.coordinates.get("y")
-                    lz = loc.coordinates.get("z")
-                    if lz == z and lx is not None and ly is not None:
-                        # Simple Chebyshev distance for grid/chunks
-                        if abs(lx - x) <= radius and abs(ly - y) <= radius:
-                            # Exclude self
-                            if lx == x and ly == y:
-                                continue
-                            results.append(loc.to_domain())
-            return results
+        with Session(self.engine) as session:
+            # Optimized range query
+            statement = select(LocationDB).where(
+                LocationDB.z == z,
+                LocationDB.x >= x - radius,
+                LocationDB.x <= x + radius,
+                LocationDB.y >= y - radius,
+                LocationDB.y <= y + radius
+            )
+            db_locs = session.exec(statement).all()
+            return [self.get_location(loc.id) for loc in db_locs if not (loc.x == x and loc.y == y)]
 
+    # --- Time Persistence ---
     def get_world_time(self):
         from app.core.domain.time_system import WorldTime
-        from app.adapters.driven.persistence.sql_models import WorldStateDB
-        
-        with Session(engine) as session:
+        with Session(self.engine) as session:
             state = session.get(WorldStateDB, "world_state")
-            if not state:
-                return WorldTime(total_ticks=0)
-            return WorldTime(total_ticks=state.total_ticks)
+            return WorldTime(total_ticks=state.total_ticks if state else 0)
 
     def save_world_time(self, world_time):
-        from app.adapters.driven.persistence.sql_models import WorldStateDB
-        
-        with Session(engine) as session:
+        with Session(self.engine) as session:
             state = WorldStateDB(id="world_state", total_ticks=world_time.total_ticks)
             session.merge(state)
             session.commit()
