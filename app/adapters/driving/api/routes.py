@@ -165,13 +165,21 @@ def get_available_actions(player: dict, location: dict, world_time: dict) -> lis
         if world_time and world_time.get("is_night"):
             actions.append("sleep")
 
-        has_water = any(inter.startswith("water_source:") for inter in location.get("interactables", []))
+        # Robust water detection: interactables OR location name
+        has_water = any(str(inter).startswith("water_source:") for inter in location.get("interactables", []))
+        if not has_water:
+            loc_name = str(location.get("name", "")).lower()
+            if any(w in loc_name for w in ["river", "lake", "stream", "well", "font", "source", "water"]):
+                has_water = True
+
         if has_water:
+            actions.append("drink")
             # Show fill for specific items in inventory
             for item in player.get("inventory", []):
-                item_name = item.get("name", "")
-                if "Empty" in item_name and "Flask" in item_name:
-                    actions.append(f"fill {item_name}")
+                item_name = (item.get("name", "") if isinstance(item, dict) else getattr(item, "name", "")).lower()
+                if "empty" in item_name and ("flask" in item_name or "vessel" in item_name):
+                    display_name = item.get("name") if isinstance(item, dict) else getattr(item, "name", "")
+                    actions.append(f"fill {display_name}")
 
         if location.get("items"):
             for item in location["items"]:
@@ -416,7 +424,7 @@ def action_consume(req: ItemRequest):
 def action_fill(req: ItemRequest):
     service = GameService(_repo)
     try:
-        msg, player, location = service.fill_vessel(req.player_id, req.item_name)
+        msg, player, location = service.fill_flask(req.player_id, req.item_name)
         world_time = _repo.get_world_time()
         return format_response(msg, player, location, world_time)
     except ValueError as e:

@@ -685,6 +685,16 @@ class GameService:
             msg, p, l = self.retrieve_item(player_id, arg_str)
             return self._post_process_special_encounters(msg, p, l)
         elif action in ["consume", "eat", "drink", "use"]:
+            if action == "drink" and (not arg_str or arg_str == "water"):
+                # Try to drink from source first
+                msg, p, l = self.drink_from_source(player_id)
+                if "no water source" in msg:
+                    # If no source, try to consume a water flask from inventory
+                    msg_item, p_item, l_item = self.consume_item(player_id, "water flask")
+                    if "don't have" in msg_item:
+                        return self._post_process_special_encounters("You have no water source nearby and no water flask in your inventory.", p, l)
+                    return self._post_process_special_encounters(msg_item, p_item, l_item)
+                return self._post_process_special_encounters(msg, p, l)
             msg, p, l = self.consume_item(player_id, arg_str)
             return self._post_process_special_encounters(msg, p, l)
         elif action in ["fill", "refill"]:
@@ -792,6 +802,23 @@ class GameService:
                 msg += f" Restored {amount} HP."
                 
         self.repo.save_player(player)
+        
+        # Recycling logic: if Water Flask was consumed, give back Empty Flask
+        if found_item.name.lower() == "water flask":
+            from app.core.domain.item import Item, ItemType
+            import uuid
+            empty_flask = Item(
+                id=str(uuid.uuid4()),
+                name="Empty Flask",
+                description="An empty glass vessel, useful for holding liquids.",
+                item_type=ItemType.OTHER,
+                value=1,
+                weight=0.5
+            )
+            player.add_item(empty_flask)
+            self.repo.save_player(player)
+            msg += " You now have an Empty Flask."
+
         world_time = self.repo.get_world_time()
         time_msg = self._advance_time_and_events(world_time, player, 1)
         
@@ -831,6 +858,28 @@ class GameService:
         
         world_time = self.repo.get_world_time()
         time_msg = self._advance_time_and_events(world_time, player, 2)
+        
+        return msg + time_msg, player, location
+
+    def drink_from_source(self, player_id: str) -> Tuple[str, Player, Location]:
+        player, location = self._get_player_and_location(player_id)
+        
+        # Check for water source
+        has_water = any(inter.startswith("water_source:") for inter in location.interactables)
+        if not has_water:
+            return "There is no water source here to drink from.", player, location
+            
+        if player.stats.thirst >= 100:
+            return "You are not thirsty.", player, location
+
+        restore_amount = 30
+        player.stats.thirst = min(100, player.stats.thirst + restore_amount)
+        
+        msg = "You cup your hands and drink the cool, refreshing water."
+        self.repo.save_player(player)
+        
+        world_time = self.repo.get_world_time()
+        time_msg = self._advance_time_and_events(world_time, player, 1)
         
         return msg + time_msg, player, location
 
