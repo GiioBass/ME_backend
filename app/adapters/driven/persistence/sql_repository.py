@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from sqlmodel import Session, select, delete
 from app.ports.repositories import GameRepository
 from app.core.domain.player import Player, Stats
@@ -8,7 +8,7 @@ from app.core.domain.enemy import Enemy
 from app.adapters.driven.persistence.sql_models import (
     PlayerDB, PlayerStatsDB, InventoryItemDB, EquipmentDB, WaypointDB,
     LocationDB, LocationExitDB, LocationInteractableDB, LocationItemDB,
-    EnemyDB, LocationEnemyDB, ItemDB, WorldStateDB
+    EnemyDB, LocationEnemyDB, ItemDB, WorldStateDB, CommandHelpDB, RecipeDB
 )
 from app.adapters.driven.persistence.db_config import engine
 
@@ -238,3 +238,69 @@ class SQLGameRepository(GameRepository):
             state = WorldStateDB(id="world_state", total_ticks=world_time.total_ticks)
             session.merge(state)
             session.commit()
+
+    def get_command_help(self) -> list[Dict[str, Any]]:
+        with Session(self.engine) as session:
+            commands = session.exec(select(CommandHelpDB)).all()
+            return [cmd.model_dump() for cmd in commands]
+
+    def create_command_help(self, command: str, description: str, usage: str, category: str, alias: Optional[str] = None):
+        with Session(self.engine) as session:
+            existing = session.exec(select(CommandHelpDB).where(CommandHelpDB.command == command)).first()
+            if not existing:
+                db_cmd = CommandHelpDB(
+                    command=command,
+                    alias=alias,
+                    description=description,
+                    usage=usage,
+                    category=category
+                )
+                session.add(db_cmd)
+                session.commit()
+
+    def save_item(self, item: Item):
+        with Session(self.engine) as session:
+            session.merge(ItemDB.from_domain(item))
+            session.commit()
+
+    def get_recipes(self) -> List[Any]:
+        with Session(self.engine) as session:
+            db_recipes = session.exec(
+                select(RecipeDB, ItemDB)
+                .join(ItemDB, RecipeDB.result_item_id == ItemDB.id)
+            ).all()
+            
+            recipes = []
+            for db_recipe, db_item in db_recipes:
+                recipes.append(db_recipe.to_domain(result_item=db_item.to_domain()))
+            return recipes
+
+    def create_recipe(self, recipe: Any):
+        with Session(self.engine) as session:
+            # Check for existing recipe by name to avoid IntegrityError on unique name
+            existing = session.exec(select(RecipeDB).where(RecipeDB.name == recipe.name)).first()
+            db_recipe = RecipeDB.from_domain(recipe)
+            if existing:
+                # Use same ID as existing to update correctly via merge
+                db_recipe.id = existing.id
+            session.merge(db_recipe)
+            session.commit()
+
+    def get_items_by_type(self, item_type: str) -> List[Item]:
+        with Session(self.engine) as session:
+            db_items = session.exec(select(ItemDB).where(ItemDB.item_type == item_type)).all()
+            return [item.to_domain() for item in db_items]
+
+    def get_item_by_name(self, name_or_id: str) -> Optional[Item]:
+        with Session(self.engine) as session:
+            # 1. Try by ID
+            db_item = session.get(ItemDB, name_or_id)
+            if db_item:
+                return db_item.to_domain()
+            
+            # 2. Try by Name (Case-insensitive)
+            db_item = session.exec(select(ItemDB).where(ItemDB.name.ilike(name_or_id))).first()
+            if db_item:
+                return db_item.to_domain()
+            
+            return None

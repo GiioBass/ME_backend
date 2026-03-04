@@ -126,3 +126,47 @@ class LocationEnemyDB(SQLModel, table=True):
 class WorldStateDB(SQLModel, table=True):
     id: str = Field(primary_key=True, default="world_state")
     total_ticks: int = 0
+
+# --- Command Help ---
+class CommandHelpDB(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    command: str = Field(index=True, unique=True)
+    alias: Optional[str] = None
+    description: str
+    usage: str
+    category: str = "general" # e.g., "movement", "combat", "inventory", "special"
+
+# --- Recipes ---
+class RecipeDB(SQLModel, table=True):
+    id: str = Field(primary_key=True)
+    name: str = Field(index=True, unique=True)
+    description: str
+    ingredients: Dict[str, int] = Field(default={}, sa_type=JSON) # itemName : quantity
+    result_item_id: str = Field(foreign_key="itemdb.id")
+    result_qty: int = 1
+    category: str = "general"
+
+    def to_domain(self, result_item: Optional[Item] = None) -> "Recipe":
+        from app.core.domain.recipe import Recipe
+        return Recipe(
+            id=self.id,
+            name=self.name,
+            description=self.description,
+            ingredients=self.ingredients,
+            result_item_id=self.result_item_id,
+            result_qty=self.result_qty,
+            category=self.category,
+            result_template=result_item
+        )
+    
+    @classmethod
+    def from_domain(cls, recipe: "Recipe") -> "RecipeDB":
+        return cls(
+            id=recipe.id,
+            name=recipe.name,
+            description=recipe.description,
+            ingredients=recipe.ingredients,
+            result_item_id=recipe.result_item_id,
+            result_qty=recipe.result_qty,
+            category=recipe.category
+        )

@@ -1,0 +1,60 @@
+Seeded 28 commands in the database.
+Seeded 5 base items.
+Seeded 3 recipes.
+INFO:     127.0.0.1:47728 - "OPTIONS /api/v1/command HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47730 - "OPTIONS /api/v1/command HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47730 - "POST /api/v1/commandSeeded 28 commands from JSON.
+Seeded 5 base items from JSON.
+Seeded 3 recipes from JSON.
+Seeded 28 commands from JSON.
+Seeded 5 base items from JSON.
+Seeded 3 recipes from JSON.
+Seeded 28 commands from JSON.
+Seeded 5 base items from JSON.
+Seeded 3 recipes from JSON.
+Seeded 28 commands from JSON.
+Seeded 5 base items from JSON.
+Seeded 3 recipes from JSON.
+Seeded 28 commands from JSON.
+Seeded 5 base items from JSON.
+Seeded 3 recipes from JSON.
+Seeded 28 commands from JSON.
+Seeded 5 base items from JSON.
+Seeded 3 recipes from JSOSeeded 28 commands from JSON.
+Seeded 19 base items from JSON files.
+Seeded 3 recipes from JSON.
+INFO:     127.0.0.1:35114 - "OPTIONS /api/v1/command HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35122 - "OPTIONS /api/v1/command HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35114 - "POST /api/v1/command HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35122 - "POST /api/v1/command HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35136 - "POST /api/v1/command HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:34454 - "GET /api/v1/commands HTTP/1.1" 200 OK
+Seeded 28 commands from JSON.
+Seeded 19 base items from JSON files.
+Seeded 3 recipes from JSON.
+INFO:     127.0.0.1:40742 - "OPTIONS /api/v1/command HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40752 - "OPTIONS /api/v1/command HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40742 - "POST /api/v1/command HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40752 - "POST /api/v1/command HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40752 - "GET /api/v1/commands HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50060 - "POST /api/v1/command HTTP/1.1" 200 OK
+es.
+Seeded 3 recipes from JSON.
+Seeded 28 commands from JSON.
+Seeded 19 base items from JSON files.
+Seeded 3 recipes from JSON.
+Seeded 28 commands from JSON.
+Seeded 19 base items from JSON files.
+Seeded 3 recipes from JSON.
+Seeded 28 commands from JSON.
+Seeded 19 base items from JSON files.
+Seeded 3 recipes from JSON.
+Seeded 28 commands from JSON.
+Seeded 19 base items from JSON files.
+Seeded 3 recipes from JSON.
+Seeded 28 commands from JSON.
+Seeded 19 base items from JSON files.
+Seeded 3 recipes from JSON.
+Seeded 28 commands from JSON.
+Seeded 19 base items from JSON files.
+Seeded 3 recipes from JSON.

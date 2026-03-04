@@ -1,0 +1,28 @@
+[
+    {
+        "name": "Torch",
+        "description": "Light up the darkness.",
+        "ingredients": {
+            "Stick": 2
+        },
+        "result_item_id": "base_torch"
+    },
+    {
+        "name": "Stone Knife",
+        "description": "A basic sharp tool.",
+        "ingredients": {
+            "Stick": 1,
+            "Stone": 1
+        },
+        "result_item_id": "base_stone_knife"
+    },
+    {
+        "name": "Stone Axe",
+        "description": "A heavy chopping tool.",
+        "ingredients": {
+            "Stick": 2,
+            "Stone": 1
+        },
+        "result_item_id": "base_stone_axe"
+    }
+]

@@ -1,0 +1,64 @@
+{
+    "biome_descriptions": {
+        "forest": [
+            "The trees are dense here.",
+            "A small clearing opens up.",
+            "You hear distant birds.",
+            "Sunlight filters through the canopy.",
+            "Roots cover the ground."
+        ],
+        "desert": [
+            "Endless sand dunes stretch out.",
+            "The heat is oppressive.",
+            "A dry wind blows.",
+            "You see a mirage in the distance.",
+            "Cracked earth beneath your feet."
+        ],
+        "default": [
+            "The surroundings are nondescript.",
+            "You don't see anything unusual."
+        ]
+    },
+    "pois": [
+        {
+            "coords": {
+                "x": 2,
+                "y": 2,
+                "z": 0
+            },
+            "name": "Abandoned Outpost",
+            "description": "A ruined stone structure. It looks like it was used for observation long ago."
+        },
+        {
+            "coords": {
+                "x": 1,
+                "y": 4,
+                "z": 0
+            },
+            "name": "Ancient Ruins",
+            "description": "Crumbling pillars covered in glowing moss surround a cracked dais."
+        },
+        {
+            "coords": {
+                "x": 4,
+                "y": 4,
+                "z": 0
+            },
+            "name": "Goblin's Clearing",
+            "description": "A suspiciously cozy clearing in the forest. Something feels... off."
+        }
+    ],
+    "water_sources": {
+        "chance": 0.15,
+        "types": [
+            "River",
+            "Stream",
+            "Small Lake",
+            "Old Well"
+        ]
+    },
+    "cave_entrance": {
+        "chance": 0.1,
+        "description_suffix": " You see a dark opening leading down."
+    }
+}

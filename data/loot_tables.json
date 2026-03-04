@@ -1,0 +1,136 @@
+{
+    "biomes": {
+        "forest": {
+            "item_spawn_chance": 0.3,
+            "equipment_chance": 0.05,
+            "loot_pool": [
+                {
+                    "item_id": "base_stick",
+                    "weight": 20
+                },
+                {
+                    "item_id": "base_stone",
+                    "weight": 20
+                },
+                {
+                    "item_id": "base_mushroom",
+                    "weight": 15
+                },
+                {
+                    "item_id": "base_berry",
+                    "weight": 15
+                },
+                {
+                    "item_id": "base_wild_apple",
+                    "weight": 10
+                },
+                {
+                    "item_id": "base_torch",
+                    "weight": 5
+                },
+                {
+                    "item_id": "base_empty_flask",
+                    "weight": 5
+                }
+            ],
+            "equipment_pool": [
+                {
+                    "item_id": "base_rusty_sword",
+                    "weight": 25
+                },
+                {
+                    "item_id": "base_torn_tunic",
+                    "weight": 25
+                },
+                {
+                    "item_id": "base_leather_armor",
+                    "weight": 25
+                },
+                {
+                    "item_id": "base_cracked_shield",
+                    "weight": 25
+                }
+            ]
+        },
+        "desert": {
+            "item_spawn_chance": 0.3,
+            "equipment_chance": 0.05,
+            "loot_pool": [
+                {
+                    "item_id": "base_cactus_spine",
+                    "weight": 30
+                },
+                {
+                    "item_id": "base_sandstone",
+                    "weight": 30
+                },
+                {
+                    "item_id": "base_scorpion_tail",
+                    "weight": 15
+                },
+                {
+                    "item_id": "base_cactus_water",
+                    "weight": 15
+                },
+                {
+                    "item_id": "base_empty_flask",
+                    "weight": 10
+                }
+            ],
+            "equipment_pool": [
+                {
+                    "item_id": "base_rusty_sword",
+                    "weight": 50
+                },
+                {
+                    "item_id": "base_leather_armor",
+                    "weight": 50
+                }
+            ]
+        },
+        "default": {
+            "item_spawn_chance": 0.1,
+            "equipment_chance": 0.01,
+            "loot_pool": [
+                {
+                    "item_id": "base_empty_flask",
+                    "weight": 50
+                },
+                {
+                    "item_id": "base_stone",
+                    "weight": 50
+                }
+            ],
+            "equipment_pool": []
+        }
+    },
+    "dungeon": {
+        "loot_chance": 0.4,
+        "rare_chance": 0.2,
+        "equipment_chance_in_rare": 0.7,
+        "base_loot": [
+            {
+                "item_id": "base_wild_apple",
+                "weight": 25
+            },
+            {
+                "item_id": "base_torch",
+                "weight": 25
+            },
+            {
+                "item_id": "base_empty_flask",
+                "weight": 25
+            },
+            {
+                "item_id": "base_stick",
+                "weight": 25
+            }
+        ],
+        "rare_loot": [
+            {
+                "item_id": "base_abyssal_core",
+                "weight": 100
+            }
+        ]
+    }
+}

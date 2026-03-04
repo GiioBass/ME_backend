@@ -1,0 +1,42 @@
+[
+    {
+        "id": "base_mushroom",
+        "name": "Mushroom",
+        "description": "A questionable forest mushroom.",
+        "item_type": "consumable",
+        "value": 2,
+        "weight": 0.1,
+        "restore_hunger": 10,
+        "restore_hp_pct": 0.05
+    },
+    {
+        "id": "base_berry",
+        "name": "Berry",
+        "description": "A sweet red berry.",
+        "item_type": "consumable",
+        "value": 1,
+        "weight": 0.05,
+        "restore_hunger": 5,
+        "restore_hp_pct": 0.08
+    },
+    {
+        "id": "base_wild_apple",
+        "name": "Wild Apple",
+        "description": "A crunchy wild apple.",
+        "item_type": "consumable",
+        "value": 3,
+        "weight": 0.2,
+        "restore_hunger": 15,
+        "restore_hp_pct": 0.15,
+        "restore_thirst": 5
+    },
+    {
+        "id": "base_cactus_water",
+        "name": "Cactus Water",
+        "description": "Water extracted from a cactus.",
+        "item_type": "consumable",
+        "value": 2,
+        "weight": 0.3,
+        "restore_thirst": 20
+    }
+]

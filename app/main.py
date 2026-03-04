@@ -12,6 +12,9 @@ async def lifespan(app: FastAPI):
     repo = SQLGameRepository()
     loader = DataLoader(repo)
     loader.load_static_locations()
+    loader.load_commands()
+    loader.seed_items()
+    loader.seed_recipes()
     yield
 
 app = FastAPI(

@@ -1,0 +1,205 @@
+[
+    {
+        "command": "north",
+        "description": "Travel to the northern location.",
+        "usage": "north",
+        "category": "movement",
+        "alias": "n"
+    },
+    {
+        "command": "south",
+        "description": "Travel to the southern location.",
+        "usage": "south",
+        "category": "movement",
+        "alias": "s"
+    },
+    {
+        "command": "east",
+        "description": "Travel to the eastern location.",
+        "usage": "east",
+        "category": "movement",
+        "alias": "e"
+    },
+    {
+        "command": "west",
+        "description": "Travel to the western location.",
+        "usage": "west",
+        "category": "movement",
+        "alias": "w"
+    },
+    {
+        "command": "up",
+        "description": "Climb up or exit a dungeon.",
+        "usage": "up",
+        "category": "movement",
+        "alias": "u"
+    },
+    {
+        "command": "down",
+        "description": "Enter a cave or go deeper.",
+        "usage": "down",
+        "category": "movement",
+        "alias": "d"
+    },
+    {
+        "command": "look",
+        "description": "Observe your current surroundings.",
+        "usage": "look",
+        "category": "general",
+        "alias": "l"
+    },
+    {
+        "command": "stats",
+        "description": "Check your character's current health and attributes.",
+        "usage": "stats",
+        "category": "general",
+        "alias": null
+    },
+    {
+        "command": "inventory",
+        "description": "List all items you are carrying.",
+        "usage": "inventory",
+        "category": "general",
+        "alias": "i"
+    },
+    {
+        "command": "time",
+        "description": "Check the current in-game time.",
+        "usage": "time",
+        "category": "general",
+        "alias": null
+    },
+    {
+        "command": "help",
+        "description": "Show this list of available commands.",
+        "usage": "help",
+        "category": "general",
+        "alias": null
+    },
+    {
+        "command": "clear",
+        "description": "Wipe the terminal history.",
+        "usage": "clear",
+        "category": "general",
+        "alias": null
+    },
+    {
+        "command": "take",
+        "description": "Pick up an item from the ground.",
+        "usage": "take [item_name]",
+        "category": "interaction",
+        "alias": "get"
+    },
+    {
+        "command": "drop",
+        "description": "Leave an item from your inventory on the ground.",
+        "usage": "drop [item_name]",
+        "category": "interaction",
+        "alias": null
+    },
+    {
+        "command": "consume",
+        "description": "Eat or drink a consumable item.",
+        "usage": "consume [item_name]",
+        "category": "interaction",
+        "alias": "use"
+    },
+    {
+        "command": "fill",
+        "description": "Fill an empty flask from a water source.",
+        "usage": "fill [flask_name]",
+        "category": "interaction",
+        "alias": null
+    },
+    {
+        "command": "attack",
+        "description": "Engage an enemy in combat.",
+        "usage": "attack [enemy_name]",
+        "category": "interaction",
+        "alias": "fight"
+    },
+    {
+        "command": "equip",
+        "description": "Wear armor or wield a weapon.",
+        "usage": "equip [item_name]",
+        "category": "advanced",
+        "alias": null
+    },
+    {
+        "command": "unequip",
+        "description": "Remove an equipped item.",
+        "usage": "unequip [slot_name]",
+        "category": "advanced",
+        "alias": null
+    },
+    {
+        "command": "camp",
+        "description": "Mark your current location as a fast travel point.",
+        "usage": "camp [camp_name]",
+        "category": "advanced",
+        "alias": null
+    },
+    {
+        "command": "travel",
+        "description": "Fast travel to a previously marked camp.",
+        "usage": "travel [camp_name]",
+        "category": "advanced",
+        "alias": null
+    },
+    {
+        "command": "rest",
+        "description": "Take a long rest to recover HP. Costs hunger, thirst, and time.",
+        "usage": "rest",
+        "category": "advanced",
+        "alias": "sleep"
+    },
+    {
+        "command": "chest",
+        "description": "Access the storage chest at your camp.",
+        "usage": "chest",
+        "category": "advanced",
+        "alias": null
+    },
+    {
+        "command": "store",
+        "description": "Move an item from inventory to the camp chest.",
+        "usage": "store [item_name]",
+        "category": "advanced",
+        "alias": null
+    },
+    {
+        "command": "retrieve",
+        "description": "Take an item from the camp chest.",
+        "usage": "retrieve [item_name]",
+        "category": "advanced",
+        "alias": null
+    },
+    {
+        "command": "admin",
+        "description": "Execute administrative overrides.",
+        "usage": "admin [key] [subcommand]",
+        "category": "advanced",
+        "alias": "god"
+    },
+    {
+        "command": "craft",
+        "description": "Create a new item from ingredients in your inventory.",
+        "usage": "craft [recipe_name]",
+        "category": "advanced",
+        "alias": null
+    },
+    {
+        "command": "recipes",
+        "description": "View all available crafting recipes.",
+        "usage": "recipes",
+        "category": "advanced",
+        "alias": null
+    },
+    {
+        "command": "scout",
+        "description": "Reveal the surrounding geography and points of interest.",
+        "usage": "scout",
+        "category": "general",
+        "alias": "map"
+    }
+]

@@ -1,0 +1,67 @@
+[
+    {
+        "id": "base_stick",
+        "name": "Stick",
+        "description": "A sturdy wooden stick.",
+        "item_type": "material",
+        "value": 1,
+        "weight": 0.5
+    },
+    {
+        "id": "base_stone",
+        "name": "Stone",
+        "description": "A sharp stone.",
+        "item_type": "material",
+        "value": 1,
+        "weight": 0.5
+    },
+    {
+        "id": "base_torch",
+        "name": "Torch",
+        "description": "A wooden torch to illuminate dark places.",
+        "item_type": "tool",
+        "value": 5,
+        "weight": 1.0,
+        "is_light_source": true
+    },
+    {
+        "id": "base_empty_flask",
+        "name": "Empty Flask",
+        "description": "An empty glass bottle suitable for carrying water.",
+        "item_type": "tool",
+        "value": 5,
+        "weight": 0.5
+    },
+    {
+        "id": "base_cactus_spine",
+        "name": "Cactus Spine",
+        "description": "A sharp cactus spine.",
+        "item_type": "material",
+        "value": 1,
+        "weight": 0.1
+    },
+    {
+        "id": "base_sandstone",
+        "name": "Sandstone",
+        "description": "A chunk of sandstone.",
+        "item_type": "material",
+        "value": 1,
+        "weight": 0.5
+    },
+    {
+        "id": "base_scorpion_tail",
+        "name": "Scorpion Tail",
+        "description": "A venomous tail.",
+        "item_type": "material",
+        "value": 10,
+        "weight": 0.3
+    },
+    {
+        "id": "base_abyssal_core",
+        "name": "Abyssal Core",
+        "description": "A glowing dark core. Very valuable.",
+        "item_type": "material",
+        "value": 500,
+        "weight": 1.0
+    }
+]

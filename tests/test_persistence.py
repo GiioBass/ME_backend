@@ -37,15 +37,18 @@ def test_persistence_flow(engine):
 from app.adapters.driven.persistence.sql_models import PlayerDB, LocationDB
 
 def test_manual_db_check():
-    # value of using SQLGameRepository
-    repo = SQLGameRepository()
+    # value of using SQLGameRepository with a fresh memory engine
+    from sqlmodel import create_engine, SQLModel
+    test_engine = create_engine("sqlite:///:memory:")
+    SQLModel.metadata.create_all(test_engine)
+    repo = SQLGameRepository(db_engine=test_engine)
     
     # Create Player
     p = Player(name="PersistedHero", current_location_id="loc_1")
     repo.save_player(p)
     
     # Simulate restart by creating new repo instance (stateless)
-    repo2 = SQLGameRepository()
+    repo2 = SQLGameRepository(db_engine=test_engine)
     loaded_p = repo2.get_player(p.id)
     
     assert loaded_p is not None

@@ -40,6 +40,14 @@ class MockRepository:
     def get_player_by_name(self, name):
         return None
 
+    def get_command_help(self): return []
+    def create_command_help(self, *args, **kwargs): pass
+    def save_item(self, item): pass
+    def get_recipes(self): return []
+    def create_recipe(self, recipe): pass
+    def get_items_by_type(self, item_type): return []
+    def get_item_by_name(self, name_or_id): return None
+
 def test_ensure_neighbors_on_start():
     repo = MockRepository()
     service = GameService(repo)

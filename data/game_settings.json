@@ -1,0 +1,29 @@
+{
+    "survival": {
+        "hunger_drain_rate": 10,
+        "thirst_drain_rate": 8,
+        "starvation_damage_rate": 10,
+        "dehydration_damage_rate": 8,
+        "passive_heal_rate": 10,
+        "passive_heal_threshold_mins": 10
+    },
+    "rest": {
+        "hunger_cost": 15,
+        "thirst_cost": 15,
+        "heal_amount": 20,
+        "full_heal": false,
+        "duration_mins": 480
+    },
+    "combat": {
+        "enemy_turn_chance": 0.4,
+        "flee_chance": 0.5
+    },
+    "interaction": {
+        "drink_restore_thirst": 30,
+        "craft_duration_mins": 10,
+        "fill_flask_duration_mins": 2
+    },
+    "admin": {
+        "system_key": "ME_ROOT_2026"
+    }
+}

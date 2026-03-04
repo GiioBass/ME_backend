@@ -26,10 +26,13 @@ Esta lista detalla las tareas pendientes para evolucionar el prototipo actual ha
     - [x] Tipos de Mazmorras (50% farmeables con regeneración / 50% instanciadas hardcore).
     - [x] Objetos de Iluminación (Antorchas, Velas, Lámparas) y oscuridad mecánica.
     - [x] Integración de Trampas en Capa Z < 0.
-    - [ ] Generación de cuerpos de agua (ríos, lagos, pozos) en la superficie (Capa Z = 0).
+    - [x] Generación de cuerpos de agua (ríos, lagos, pozos) en la superficie (Capa Z = 0).
 - [x] **Mecánicas de Supervivencia - Hidratación:**
     - [x] Separar consumibles: Comida solo restaura hambre (y regenera HP%), Agua/Bebidas solo restaura sed.
-    - [x] Añadir Frascos/Botellas de agua (Water Flask) y acción para rellenarlos en fuentes de agua.
+    - [x] Añadir Frascos/Botellas de agua (Water Flask).
+    - [x] Acción para rellenar frascos en fuentes de agua (Fill Action).
+    - [x] Beber directamente desde fuentes de agua (Drink Action).
+    - [x] Reciclaje de frascos: Recuperar frasco vacío al consumir agua.
 
 ## 2. Sistema de Items e Inventario
 - [x] **Entidades de Items**
@@ -80,9 +83,11 @@ Esta lista detalla las tareas pendientes para evolucionar el prototipo actual ha
 - [x] **Mejorar Respuestas API**
     - [x] Estandarizar respuestas de error.
     - [x] Incluir lista de acciones válidas en cada respuesta (`available_actions`).
-- [x] **Autenticación Validación**
-    - [x] Prevenir creación de personaje si el nombre ya existe (`/start`).
-    - [x] Mostrar mensaje de error si se intenta cargar personaje inexistente (`/login`).
+- [x] **API e Interfaz Adaptativa**
+    - [x] Estabilización de controles de movimiento (NavigationGrid anclado).
+    - [x] Radar plegable/desplegable manualmente (Toggle Radar).
+    - [x] Prevención de crashes por datos nulos en el radar.
+    - [x] Botón contextual "Drink from Source" en el panel lateral.
 
 ## 7. Multijugador (Largo Plazo)
 - [ ] Websockets para chat y eventos en tiempo real.

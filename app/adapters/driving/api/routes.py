@@ -1,3 +1,4 @@
+from typing import Optional, List, Dict, Any
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from app.core.use_cases.game_service import GameService
@@ -38,6 +39,17 @@ class TravelRequest(BaseModel):
 
 class PlayerIdRequest(BaseModel):
     player_id: str
+
+class CraftRequest(BaseModel):
+    player_id: str
+    recipe_name: str
+
+class CommandHelpResponse(BaseModel):
+    command: str
+    alias: Optional[str] = None
+    description: str
+    usage: str
+    category: str
 
 class GameResponse(BaseModel):
     message: str
@@ -231,6 +243,22 @@ def get_available_actions(player: dict, location: dict, world_time: dict) -> lis
                     name = item.get("name") if isinstance(item, dict) else item
                     actions.append(f"retrieve {name}")
                     
+    # Crafting
+    actions.append("recipes")
+    recipes = _repo.get_recipes()
+    if player and player.get("inventory"):
+        from collections import Counter
+        inv_counts = Counter(item.get("name") if isinstance(item, dict) else getattr(item, "name", "") for item in player["inventory"])
+        
+        for r in recipes:
+            can_craft = True
+            for ing_name, qty in r.ingredients.items():
+                if inv_counts[ing_name] < qty:
+                    can_craft = False
+                    break
+            if can_craft:
+                actions.append(f"craft {r.name}")
+
     return list(dict.fromkeys(actions))  # Deduplicate while preserving order
 
 def format_response(msg: str, player: dict, location: dict, world_time: dict, scouted: list = None) -> dict:
@@ -420,6 +448,26 @@ def action_consume(req: ItemRequest):
     except ValueError as e:
         raise_game_error(e)
 
+@router.post("/action/craft", response_model=GameResponse)
+def action_craft(req: CraftRequest):
+    service = GameService(_repo)
+    try:
+        msg, player, location = service.craft_item(req.player_id, req.recipe_name)
+        world_time = _repo.get_world_time()
+        return format_response(msg, player, location, world_time)
+    except ValueError as e:
+        raise_game_error(e)
+
+@router.post("/action/recipes", response_model=GameResponse)
+def action_recipes(req: PlayerIdRequest):
+    service = GameService(_repo)
+    try:
+        msg, player, location = service.get_recipes_list(req.player_id)
+        world_time = _repo.get_world_time()
+        return format_response(msg, player, location, world_time)
+    except ValueError as e:
+        raise_game_error(e)
+
 @router.post("/action/fill", response_model=GameResponse)
 def action_fill(req: ItemRequest):
     service = GameService(_repo)
@@ -449,3 +497,8 @@ def inventory(req: PlayerIdRequest):
         return format_response(msg, player, location, world_time)
     except ValueError as e:
         raise_game_error(e)
+
+@router.get("/commands", response_model=list[CommandHelpResponse])
+def get_commands():
+    service = GameService(_repo)
+    return service.get_command_help()

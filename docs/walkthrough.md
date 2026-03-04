@@ -86,7 +86,21 @@ Time passes as you act (turn-based).
 - **Healing:** You regenerate 1 HP for every 10 minutes of activity.
 - Use `time` command to check the clock.
 
-For a full list of supported commands, see [COMMANDS.md](COMMANDS.md).
+## System Management & Reset
+### 1. Resetting the Game State
+If you want to start from a completely clean slate, you can wipe the database:
+- **Fast Reset**: Run `./reset_db.sh` in the `ME_backend` directory.
+- **Manual**: Delete `database.db` and restart with `me-be`.
+- **Regeneration**: The system automatically recreates the world and reloads static data on the next startup.
+
+### 2. Further Documentation
+For more technical details on how the system handles regeneration and persistence, see:
+- [DATA_MANAGEMENT.md](file:///var/www/html/ME_backend/docs/DATA_MANAGEMENT.md)
+- [TECH_STACK.md](file:///var/www/html/ME_backend/docs/TECH_STACK.md)
+
+---
+> [!IMPORTANT]
+> Use the aliases `me-be` and `me-fe` to start the backend and frontend respectively.
 
 ## Next Steps
 -   **Expand World Generation**: Add more rooms and procedural generation.

@@ -1,0 +1,115 @@
+{
+    "biomes": {
+        "forest": [
+            {
+                "name": "Goblin",
+                "hp": 10,
+                "attack": 2,
+                "xp": 10
+            },
+            {
+                "name": "Gray Wolf",
+                "hp": 15,
+                "attack": 3,
+                "xp": 15
+            },
+            {
+                "name": "Giant Spider",
+                "hp": 18,
+                "attack": 4,
+                "xp": 18
+            },
+            {
+                "name": "Furious Boar",
+                "hp": 30,
+                "attack": 5,
+                "xp": 30
+            }
+        ],
+        "desert": [
+            {
+                "name": "Sand Scorpion",
+                "hp": 15,
+                "attack": 3,
+                "xp": 15
+            },
+            {
+                "name": "Vulture",
+                "hp": 12,
+                "attack": 2,
+                "xp": 12
+            },
+            {
+                "name": "Desert Bandit",
+                "hp": 25,
+                "attack": 4,
+                "xp": 20
+            }
+        ],
+        "underground": [
+            {
+                "name": "Cave Spider",
+                "hp": 20,
+                "attack": 4,
+                "xp": 20
+            },
+            {
+                "name": "Skeleton Warrior",
+                "hp": 25,
+                "attack": 5,
+                "xp": 25
+            },
+            {
+                "name": "Green Slime",
+                "hp": 15,
+                "attack": 3,
+                "xp": 15
+            },
+            {
+                "name": "Vampire Bat",
+                "hp": 12,
+                "attack": 4,
+                "xp": 18
+            }
+        ]
+    },
+    "spawn_chance": 0.2,
+    "depth_scaling": {
+        "hp_increase": 0.5,
+        "attack_increase": 0.3,
+        "xp_increase": 0.5,
+        "prefixes": [
+            "Deep",
+            "Ancient",
+            "Abyssal",
+            "Cursed"
+        ]
+    },
+    "specials": [
+        {
+            "trigger_coords": {
+                "x": 4,
+                "y": 4,
+                "z": 0
+            },
+            "enemy": {
+                "name": "Friendly Goblin",
+                "description": "He's smiling at you. A bit too broadly.",
+                "hp": 10,
+                "attack": 0,
+                "xp_reward": 100
+            }
+        }
+    ],
+    "bosses": {
+        "base_hp": 100,
+        "base_attack": 15,
+        "prefixes": [
+            "Abyssal",
+            "Tyrant",
+            "Cursed",
+            "Ancient",
+            "Dread"
+        ]
+    }
+}

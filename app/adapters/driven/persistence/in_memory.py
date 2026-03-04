@@ -7,6 +7,9 @@ class InMemoryGameRepository(GameRepository):
     def __init__(self):
         self.players: Dict[str, Player] = {}
         self.locations: Dict[str, Location] = {}
+        self.commands = []
+        self.items = {} # name_or_id -> Item
+        self.recipes = []
 
     def get_player(self, player_id: str) -> Optional[Player]:
         return self.players.get(player_id)
@@ -50,4 +53,32 @@ class InMemoryGameRepository(GameRepository):
 
     def save_world_time(self, world_time):
         self.world_time = world_time
+
+    def get_command_help(self):
+        return self.commands
+
+    def create_command_help(self, command, description, usage, category, alias=None):
+        self.commands.append({
+            "command": command,
+            "description": description,
+            "usage": usage,
+            "category": category,
+            "alias": alias
+        })
+
+    def save_item(self, item):
+        self.items[item.id] = item
+        self.items[item.name.lower()] = item
+
+    def get_recipes(self):
+        return self.recipes
+
+    def create_recipe(self, recipe):
+        self.recipes.append(recipe)
+
+    def get_items_by_type(self, item_type):
+        return [i for i in self.items.values() if i.item_type == item_type]
+
+    def get_item_by_name(self, name_or_id):
+        return self.items.get(name_or_id) or self.items.get(name_or_id.lower())
 

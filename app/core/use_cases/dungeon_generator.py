@@ -6,8 +6,11 @@ from app.core.domain.enemy import Enemy
 from app.core.domain.item import Item, ItemType
 
 class DungeonGenerator:
-    def __init__(self, blueprint_loader=None):
+    def __init__(self, repo=None, blueprint_loader=None, loot_tables=None, enemies_config=None):
+        self.repo = repo
         self.blueprint_loader = blueprint_loader
+        self.loot_tables = loot_tables or {}
+        self.enemies_config = enemies_config or {}
         
     def generate_floor(self, root_x: int, root_y: int, z: int) -> List[Location]:
         """
@@ -95,9 +98,19 @@ class DungeonGenerator:
         b.exits[opposites[dir_a_to_b]] = a.id
 
     def _populate_dungeon_enemies(self, loc: Location, z: int, is_hardcore: bool):
+        if not self.enemies_config: return
+        
         depth_mult = abs(z)
-        base_hp = 20 * depth_mult
-        base_atk = 5 * depth_mult
+        conf = self.enemies_config.get("underground", [])
+        if not conf:
+            # Fallback to biome pool if underground not specifically defined
+            conf = self.enemies_config.get("biomes", {}).get("underground", [])
+        
+        if not conf: return
+        
+        choice = random.choice(conf)
+        base_hp = choice["hp"] * depth_mult
+        base_atk = choice["attack"] * depth_mult
         
         if is_hardcore:
             base_hp = int(base_hp * 1.5)
@@ -105,20 +118,23 @@ class DungeonGenerator:
             
         e1 = Enemy(
             id=str(uuid.uuid4()),
-            name=f"Dungeon Crawler (Lvl {depth_mult})",
-            description="A vile creature adapted to the dark.",
+            name=f"{choice['name']} (Lvl {depth_mult})",
+            description=f"A vile {choice['name'].lower()} adapted to the dark.",
             hp=base_hp,
             max_hp=base_hp,
             attack=base_atk,
-            xp_reward=20 * depth_mult
+            xp_reward=choice["xp"] * depth_mult
         )
         loc.add_enemy(e1)
 
     def _spawn_boss(self, loc: Location, z: int):
+        if not self.enemies_config: return
+        
+        boss_conf = self.enemies_config.get("bosses", {})
         depth_mult = abs(z)
-        hp = 100 * depth_mult
-        attack = 15 * depth_mult
-        prefixes = ["Abyssal", "Tyrant", "Cursed", "Ancient", "Dread"]
+        hp = boss_conf.get("base_hp", 100) * depth_mult
+        attack = boss_conf.get("base_attack", 15) * depth_mult
+        prefixes = boss_conf.get("prefixes", ["Ancient"])
         name = f"{random.choice(prefixes)} Warden"
         
         boss = Enemy(
@@ -129,56 +145,38 @@ class DungeonGenerator:
             max_hp=hp,
             attack=attack,
             xp_reward=100 * depth_mult,
-            is_boss=True  # We can add this attribute later, or just treat it by stats
+            is_boss=True
         )
         loc.add_enemy(boss)
         
     def _populate_dungeon_loot(self, loc: Location, z: int, is_hardcore: bool):
+        if not self.loot_tables or not self.repo: return
+        
+        dng_loot = self.loot_tables.get("dungeon", {})
         depth_mult = abs(z)
         loot_roll = random.random()
         
-        from app.core.domain.item import ItemType
-        
-        if loot_roll < 0.4:  # 40% chance for some basic loot
-            loot_options = [
-                {"name": "Wild Apple", "type": ItemType.CONSUMABLE, "desc": "A crunchy wild apple found in a crate.", "restore_hunger": 15, "restore_hp_pct": 0.15, "restore_thirst": 5},
-                {"name": "Torch", "type": ItemType.TOOL, "desc": "A wooden torch to illuminate dark places.", "weight": 1.0, "is_light_source": True},
-                {"name": "Water Flask (Empty)", "type": ItemType.TOOL, "desc": "An empty glass flask.", "weight": 0.5},
-                {"name": "Stick", "type": ItemType.MATERIAL, "desc": "A wooden stick used for fuel."},
-            ]
-            choice = random.choice(loot_options)
-            item = Item(
-                id=str(uuid.uuid4()),
-                name=choice["name"],
-                description=choice["desc"],
-                item_type=choice["type"],
-                weight=choice.get("weight", 0.1),
-                restore_hunger=choice.get("restore_hunger", 0),
-                restore_hp_pct=choice.get("restore_hp_pct", 0.0),
-                restore_thirst=choice.get("restore_thirst", 0),
-                is_light_source=choice.get("is_light_source", False),
-                value=5 * depth_mult
-            )
-            loc.add_item(item)
-        elif loot_roll < 0.6:  # 20% chance for equipment or rare items
-            if random.random() < 0.7:  # Equipment
-                item = Item(
-                    id=str(uuid.uuid4()),
-                    name=f"Obsidian Blade +{depth_mult}",
-                    description="A heavy, sharp dark blade.",
-                    item_type=ItemType.WEAPON,
-                    equip_slot="weapon",
-                    weight=5.0,
-                    stat_bonuses={"strength": 5 * depth_mult},
-                    value=50 * depth_mult
-                )
-            else:  # Rare material
-                item = Item(
-                    id=str(uuid.uuid4()),
-                    name="Abyssal Core",
-                    description="A glowing dark core. Very valuable.",
-                    item_type=ItemType.MATERIAL,
-                    value=100 * depth_mult,
-                    weight=1.0
-                )
+        if loot_roll < dng_loot.get("loot_chance", 0.4):
+            pool = dng_loot.get("base_loot", [])
+            # Check for rare upgrade
+            if random.random() < dng_loot.get("rare_chance", 0.2):
+                if random.random() < dng_loot.get("equipment_chance_in_rare", 0.7):
+                    # Equipment logic: we'll handle this by choosing from equipment pool if available
+                    # For now just use rare_loot
+                    pool = dng_loot.get("rare_loot", [])
+                else:
+                    pool = dng_loot.get("rare_loot", [])
+
+            if not pool: return
+
+            weights = [i.get("weight", 1) for i in pool]
+            choice_data = random.choices(pool, weights=weights, k=1)[0]
+            
+            template = self.repo.get_item_by_name(choice_data["item_id"])
+            if not template: return
+
+            item = Item(**template.model_dump())
+            item.id = str(uuid.uuid4())
+            # Scale value by depth
+            item.value = int(item.value * depth_mult)
             loc.add_item(item)

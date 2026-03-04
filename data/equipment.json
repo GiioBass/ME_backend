@@ -1,0 +1,94 @@
+[
+    {
+        "id": "base_stone_knife",
+        "name": "Stone Knife",
+        "description": "A crude but sharp knife made of stone and wood.",
+        "item_type": "weapon",
+        "value": 15,
+        "weight": 1.5,
+        "equip_slot": "weapon",
+        "stat_bonuses": {
+            "strength": 3
+        }
+    },
+    {
+        "id": "base_stone_axe",
+        "name": "Stone Axe",
+        "description": "A heavy stone axe for chopping or combat.",
+        "item_type": "weapon",
+        "value": 25,
+        "weight": 4.5,
+        "equip_slot": "weapon",
+        "stat_bonuses": {
+            "strength": 6
+        }
+    },
+    {
+        "id": "base_rusty_sword",
+        "name": "Rusty Sword",
+        "description": "An old sword, heavily rusted.",
+        "item_type": "weapon",
+        "value": 10,
+        "weight": 3.0,
+        "equip_slot": "weapon",
+        "stat_bonuses": {
+            "strength": 2
+        },
+        "durability": 10,
+        "max_durability": 100
+    },
+    {
+        "id": "base_torn_tunic",
+        "name": "Torn Tunic",
+        "description": "A moth-eaten cloth tunic.",
+        "item_type": "armor",
+        "value": 5,
+        "weight": 1.0,
+        "equip_slot": "armor",
+        "stat_bonuses": {
+            "defense": 1
+        },
+        "durability": 15,
+        "max_durability": 100
+    },
+    {
+        "id": "base_leather_armor",
+        "name": "Worn Leather Armor",
+        "description": "A stiff, poorly maintained leather chestpiece.",
+        "item_type": "armor",
+        "value": 30,
+        "weight": 4.0,
+        "equip_slot": "armor",
+        "stat_bonuses": {
+            "defense": 2
+        },
+        "durability": 20,
+        "max_durability": 100
+    },
+    {
+        "id": "base_cracked_shield",
+        "name": "Cracked Wooden Shield",
+        "description": "A wooden board that barely resembles a shield.",
+        "item_type": "armor",
+        "value": 15,
+        "weight": 2.5,
+        "equip_slot": "armor",
+        "stat_bonuses": {
+            "defense": 1
+        },
+        "durability": 8,
+        "max_durability": 100
+    },
+    {
+        "id": "base_obsidian_blade",
+        "name": "Obsidian Blade",
+        "description": "A heavy, sharp dark blade.",
+        "item_type": "weapon",
+        "value": 100,
+        "weight": 5.0,
+        "equip_slot": "weapon",
+        "stat_bonuses": {
+            "strength": 10
+        }
+    }
+]
