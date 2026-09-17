@@ -25,10 +25,6 @@ class AttackRequest(BaseModel):
     player_id: str
     target_name: str
 
-class ItemRequest(BaseModel):
-    player_id: str
-    item_name: str
-
 class CampRequest(BaseModel):
     player_id: str
     camp_name: str
@@ -43,6 +39,31 @@ class PlayerIdRequest(BaseModel):
 class CraftRequest(BaseModel):
     player_id: str
     recipe_name: str
+
+class TalkRequest(BaseModel):
+    player_id: str
+    npc_name: str
+
+class DialogueRequest(BaseModel):
+    player_id: str
+    choice: str
+
+class TradeRequest(BaseModel):
+    player_id: str
+    item_name: str
+
+class QuestTurnInRequest(BaseModel):
+    player_id: str
+    quest_id: str
+
+class ClassSelectRequest(BaseModel):
+    player_id: str
+    character_class: str
+
+class SkillUseRequest(BaseModel):
+    player_id: str
+    skill_name: str
+    target_name: Optional[str] = None
 
 class CommandHelpResponse(BaseModel):
     command: str
@@ -62,29 +83,45 @@ class GameResponse(BaseModel):
 def get_game_service(repo: GameRepository) -> GameService:
     return GameService(repo)
 
+def serialize_inventory(inventory_list) -> list:
+    if not inventory_list:
+        return []
+        
+    grouped = {}
+    for item in inventory_list:
+        name = item.get("name", "Unknown") if isinstance(item, dict) else (item.name if hasattr(item, "name") else "Unknown")
+        if name not in grouped:
+            grouped[name] = {"item": item, "qty": 0}
+        grouped[name]["qty"] += 1
+    
+    new_inventory = []
+    for name, group_data in grouped.items():
+        item_data = group_data["item"]
+        if isinstance(item_data, dict):
+            serialized_item = item_data.copy()
+        else:
+            serialized_item = item_data.model_dump() if hasattr(item_data, "model_dump") else {"name": name}
+            
+        serialized_item["qty"] = group_data["qty"]
+        
+        # Add damage and shield stats for the frontend
+        item_type_str = str(serialized_item.get("item_type", "")).lower()
+        equip_slot = str(serialized_item.get("equip_slot", "")).lower()
+        if "stat_bonuses" in serialized_item and serialized_item["stat_bonuses"]:
+            if "weapon" in item_type_str or equip_slot == "weapon":
+                serialized_item["damage"] = serialized_item["stat_bonuses"].get("strength", 0)
+            if "armor" in item_type_str or equip_slot == "armor":
+                serialized_item["shield"] = serialized_item["stat_bonuses"].get("defense", 0)
+                
+        new_inventory.append(serialized_item)
+    return new_inventory
+
 def serialize_player(player) -> dict:
     data = player.model_dump()
     data["current_weight"] = player.current_weight
     
     if "inventory" in data and data["inventory"]:
-        grouped = {}
-        for item in data["inventory"]:
-            name = item.get("name", "Unknown") if isinstance(item, dict) else (item.name if hasattr(item, "name") else "Unknown")
-            if name not in grouped:
-                grouped[name] = {"item": item, "qty": 0}
-            grouped[name]["qty"] += 1
-        
-        new_inventory = []
-        for name, group_data in grouped.items():
-            item_data = group_data["item"]
-            if isinstance(item_data, dict):
-                item_data["qty"] = group_data["qty"]
-                new_inventory.append(item_data)
-            else:
-                item_dict = item_data.model_dump() if hasattr(item_data, "model_dump") else {"name": name}
-                item_dict["qty"] = group_data["qty"]
-                new_inventory.append(item_dict)
-        data["inventory"] = new_inventory
+        data["inventory"] = serialize_inventory(data["inventory"])
         
     # Serialize equipment which might contain domain Items
     if "equipment" in data and data["equipment"]:
@@ -136,6 +173,32 @@ def serialize_player(player) -> dict:
 
     return data
 
+
+def execute_game_action(service, func_name, *args):
+    try:
+        res = getattr(service, func_name)(*args)
+        if isinstance(res, tuple) and len(res) == 4:
+            msg, player, location, scouted = res
+        elif isinstance(res, tuple) and len(res) == 3:
+            msg, player, location = res
+            scouted = None
+        else:
+            return res # fallback
+            
+        if not player.is_alive():
+            player.heal()
+            player.current_location_id = "loc_0_0_0"
+            service.repo.save_player(player)
+            location = service.repo.get_location("loc_0_0_0")
+            if not location:
+                location = service.world_gen.generate_start_location()
+            msg += "\n\n*** YOU DIED ***\nYou succumbed to the elements and perished. You wake up at the start."
+            
+        world_time = service.repo.get_world_time()
+        return format_response(msg, player, location, world_time, scouted)
+    except ValueError as e:
+        raise_game_error(e)
+
 router = APIRouter()
 
 from app.adapters.driven.persistence.sql_repository import SQLGameRepository
@@ -167,8 +230,18 @@ def raise_game_error(e: ValueError):
     )
 
 def get_available_actions(player: dict, location: dict, world_time: dict) -> list[str]:
-    actions = ["look", "inventory", "scout"]
+    actions = ["look", "inventory", "scout", "quests"]
     
+    # Class choices if not yet picked
+    if player and player.get("stats", {}).get("character_class") == "adventurer":
+        actions.extend(["class fighter", "class marksman", "class mage"])
+    elif player and player.get("skills"):
+        actions.append("skills")
+
+    # If currently in dialogue
+    if player and player.get("active_dialogue"):
+        actions.extend(["dialogue 1", "dialogue 2", "dialogue 3", "dialogue 4"])
+
     if location:
         if location.get("exits"):
             for direction in location["exits"].keys():
@@ -176,6 +249,10 @@ def get_available_actions(player: dict, location: dict, world_time: dict) -> lis
         
         if world_time and world_time.get("is_night"):
             actions.append("sleep")
+
+        # NPCs in location
+        if location.get("id") == "loc_0_0_0":
+            actions.extend(["talk Village Elder", "talk Merchant Silas", "talk Farmer Ted", "shop"])
 
         # Robust water detection: interactables OR location name
         has_water = any(str(inter).startswith("water_source:") for inter in location.get("interactables", []))
@@ -186,7 +263,6 @@ def get_available_actions(player: dict, location: dict, world_time: dict) -> lis
 
         if has_water:
             actions.append("drink")
-            # Show fill for specific items in inventory
             for item in player.get("inventory", []):
                 item_name = (item.get("name", "") if isinstance(item, dict) else getattr(item, "name", "")).lower()
                 if "empty" in item_name and ("flask" in item_name or "vessel" in item_name):
@@ -202,6 +278,9 @@ def get_available_actions(player: dict, location: dict, world_time: dict) -> lis
             for enemy in location["enemies"]:
                 name = enemy.get("name") if isinstance(enemy, dict) else enemy
                 actions.append(f"attack {name}")
+                if player and player.get("skills"):
+                    for sk in player["skills"]:
+                        actions.append(f"skill {sk} {name}")
                 
     if player:
         if player.get("inventory"):
@@ -259,7 +338,7 @@ def get_available_actions(player: dict, location: dict, world_time: dict) -> lis
             if can_craft:
                 actions.append(f"craft {r.name}")
 
-    return list(dict.fromkeys(actions))  # Deduplicate while preserving order
+    return list(dict.fromkeys(actions))
 
 def format_response(msg: str, player: dict, location: dict, world_time: dict, scouted: list = None) -> dict:
     serialized_player = serialize_player(player)
@@ -281,6 +360,9 @@ def format_response(msg: str, player: dict, location: dict, world_time: dict, sc
     serialized_time = serialize_time(world_time)
     actions = get_available_actions(serialized_player, serialized_location, serialized_time)
 
+    if "inventory" in serialized_player:
+        del serialized_player["inventory"]
+
     resp = {
         "message": msg,
         "player": serialized_player,
@@ -293,10 +375,10 @@ def format_response(msg: str, player: dict, location: dict, world_time: dict, sc
     return resp
 
 @router.post("/start", response_model=GameResponse)
-def start_game(name: str):
+def start_game(name: str, character_class: Optional[str] = None):
     service = GameService(_repo)
     try:
-        player, location = service.create_new_player(name)
+        player, location = service.create_new_player(name, character_class)
         world_time = _repo.get_world_time()
         return format_response(f"Welcome, {name}! Your adventure begins.", player, location, world_time)
     except ValueError as e:
@@ -331,174 +413,145 @@ def send_command(req: CommandRequest):
 @router.post("/action/move", response_model=GameResponse)
 def action_move(req: MoveRequest):
     service = GameService(_repo)
-    try:
-        msg, player, location = service.move_player(req.player_id, req.direction)
-        world_time = _repo.get_world_time()
-        return format_response(msg, player, location, world_time)
-    except ValueError as e:
-        raise_game_error(e)
+    return execute_game_action(service, "move_player", req.player_id, req.direction)
 
 @router.post("/action/take", response_model=GameResponse)
 def action_take(req: ItemRequest):
     service = GameService(_repo)
-    try:
-        msg, player, location = service.take_item(req.player_id, req.item_name)
-        world_time = _repo.get_world_time()
-        return format_response(msg, player, location, world_time)
-    except ValueError as e:
-        raise_game_error(e)
+    return execute_game_action(service, "take_item", req.player_id, req.item_name)
 
 @router.post("/action/drop", response_model=GameResponse)
 def action_drop(req: ItemRequest):
     service = GameService(_repo)
-    try:
-        msg, player, location = service.drop_item(req.player_id, req.item_name)
-        world_time = _repo.get_world_time()
-        return format_response(msg, player, location, world_time)
-    except ValueError as e:
-        raise_game_error(e)
+    return execute_game_action(service, "drop_item", req.player_id, req.item_name)
 
 @router.post("/action/equip", response_model=GameResponse)
 def action_equip(req: ItemRequest):
     service = GameService(_repo)
-    try:
-        msg, player, location = service.equip_item(req.player_id, req.item_name)
-        world_time = _repo.get_world_time()
-        return format_response(msg, player, location, world_time)
-    except ValueError as e:
-        raise_game_error(e)
+    return execute_game_action(service, "equip_item", req.player_id, req.item_name)
 
 @router.post("/action/unequip", response_model=GameResponse)
 def action_unequip(req: SlotRequest):
     service = GameService(_repo)
-    try:
-        msg, player, location = service.unequip_item(req.player_id, req.slot)
-        world_time = _repo.get_world_time()
-        return format_response(msg, player, location, world_time)
-    except ValueError as e:
-        raise_game_error(e)
+    return execute_game_action(service, "unequip_item", req.player_id, req.slot)
 
 @router.post("/action/attack", response_model=GameResponse)
 def action_attack(req: AttackRequest):
     service = GameService(_repo)
-    try:
-        msg, player, location = service.attack_enemy(req.player_id, req.target_name)
-        world_time = _repo.get_world_time()
-        return format_response(msg, player, location, world_time)
-    except ValueError as e:
-        raise_game_error(e)
+    return execute_game_action(service, "attack_enemy", req.player_id, req.target_name)
 
 @router.post("/action/scout", response_model=GameResponse)
 def action_scout(req: PlayerIdRequest):
     service = GameService(_repo)
-    try:
-        msg, player, location, scouted = service.scout_area(req.player_id)
-        world_time = _repo.get_world_time()
-        return format_response(msg, player, location, world_time, scouted)
-    except ValueError as e:
-        raise_game_error(e)
+    return execute_game_action(service, "scout_area", req.player_id)
 
 @router.post("/action/camp", response_model=GameResponse)
 def action_camp(req: CampRequest):
     service = GameService(_repo)
-    try:
-        msg, player, location = service.create_camp(req.player_id, req.camp_name)
-        world_time = _repo.get_world_time()
-        return format_response(msg, player, location, world_time)
-    except ValueError as e:
-        raise_game_error(e)
+    return execute_game_action(service, "create_camp", req.player_id, req.camp_name)
 
 @router.post("/action/travel", response_model=GameResponse)
 def action_travel(req: TravelRequest):
     service = GameService(_repo)
-    try:
-        msg, player, location = service.fast_travel(req.player_id, req.waypoint_name)
-        world_time = _repo.get_world_time()
-        return format_response(msg, player, location, world_time)
-    except ValueError as e:
-        raise_game_error(e)
+    return execute_game_action(service, "fast_travel", req.player_id, req.waypoint_name)
 
 @router.post("/action/store", response_model=GameResponse)
 def action_store(req: ItemRequest):
     service = GameService(_repo)
-    try:
-        msg, player, location = service.store_item(req.player_id, req.item_name)
-        world_time = _repo.get_world_time()
-        return format_response(msg, player, location, world_time)
-    except ValueError as e:
-        raise_game_error(e)
+    return execute_game_action(service, "store_item", req.player_id, req.item_name)
 
 @router.post("/action/retrieve", response_model=GameResponse)
 def action_retrieve(req: ItemRequest):
     service = GameService(_repo)
-    try:
-        msg, player, location = service.retrieve_item(req.player_id, req.item_name)
-        world_time = _repo.get_world_time()
-        return format_response(msg, player, location, world_time)
-    except ValueError as e:
-        raise_game_error(e)
+    return execute_game_action(service, "retrieve_item", req.player_id, req.item_name)
 
 @router.post("/action/consume", response_model=GameResponse)
 def action_consume(req: ItemRequest):
     service = GameService(_repo)
-    try:
-        msg, player, location = service.consume_item(req.player_id, req.item_name)
-        world_time = _repo.get_world_time()
-        return format_response(msg, player, location, world_time)
-    except ValueError as e:
-        raise_game_error(e)
+    return execute_game_action(service, "consume_item", req.player_id, req.item_name)
 
 @router.post("/action/craft", response_model=GameResponse)
 def action_craft(req: CraftRequest):
     service = GameService(_repo)
-    try:
-        msg, player, location = service.craft_item(req.player_id, req.recipe_name)
-        world_time = _repo.get_world_time()
-        return format_response(msg, player, location, world_time)
-    except ValueError as e:
-        raise_game_error(e)
+    return execute_game_action(service, "craft_item", req.player_id, req.recipe_name)
 
 @router.post("/action/recipes", response_model=GameResponse)
 def action_recipes(req: PlayerIdRequest):
     service = GameService(_repo)
-    try:
-        msg, player, location = service.get_recipes_list(req.player_id)
-        world_time = _repo.get_world_time()
-        return format_response(msg, player, location, world_time)
-    except ValueError as e:
-        raise_game_error(e)
+    return execute_game_action(service, "get_recipes_list", req.player_id)
 
 @router.post("/action/fill", response_model=GameResponse)
 def action_fill(req: ItemRequest):
     service = GameService(_repo)
-    try:
-        msg, player, location = service.fill_flask(req.player_id, req.item_name)
-        world_time = _repo.get_world_time()
-        return format_response(msg, player, location, world_time)
-    except ValueError as e:
-        raise_game_error(e)
+    return execute_game_action(service, "fill_flask", req.player_id, req.item_name)
+
+@router.post("/action/talk", response_model=GameResponse)
+def action_talk(req: TalkRequest):
+    service = GameService(_repo)
+    return execute_game_action(service, "talk_to_npc", req.player_id, req.npc_name)
+
+@router.post("/action/dialogue", response_model=GameResponse)
+def action_dialogue(req: DialogueRequest):
+    service = GameService(_repo)
+    return execute_game_action(service, "choose_dialogue_option", req.player_id, req.choice)
+
+@router.post("/action/buy", response_model=GameResponse)
+def action_buy(req: TradeRequest):
+    service = GameService(_repo)
+    return execute_game_action(service, "buy_item", req.player_id, req.item_name)
+
+@router.post("/action/sell", response_model=GameResponse)
+def action_sell(req: TradeRequest):
+    service = GameService(_repo)
+    return execute_game_action(service, "sell_item", req.player_id, req.item_name)
+
+@router.post("/action/quests", response_model=GameResponse)
+def action_quests(req: PlayerIdRequest):
+    service = GameService(_repo)
+    return execute_game_action(service, "list_player_quests", req.player_id)
+
+@router.post("/action/quest/turnin", response_model=GameResponse)
+def action_quest_turnin(req: QuestTurnInRequest):
+    service = GameService(_repo)
+    return execute_game_action(service, "turn_in_quest", req.player_id, req.quest_id)
+
+@router.post("/action/class", response_model=GameResponse)
+def action_class(req: ClassSelectRequest):
+    service = GameService(_repo)
+    return execute_game_action(service, "select_class", req.player_id, req.character_class)
+
+@router.post("/action/skill", response_model=GameResponse)
+def action_skill(req: SkillUseRequest):
+    service = GameService(_repo)
+    return execute_game_action(service, "use_skill", req.player_id, req.skill_name, req.target_name)
+
+@router.post("/action/skills", response_model=GameResponse)
+def action_skills(req: PlayerIdRequest):
+    service = GameService(_repo)
+    return execute_game_action(service, "list_skills", req.player_id)
 
 @router.post("/look", response_model=GameResponse)
 def look(req: PlayerIdRequest):
     service = GameService(_repo)
-    try:
-        msg, player, location = service.look(req.player_id)
-        world_time = _repo.get_world_time()
-        return format_response(msg, player, location, world_time)
-    except ValueError as e:
-        raise_game_error(e)
+    return execute_game_action(service, "look", req.player_id)
 
 @router.post("/inventory", response_model=GameResponse)
 def inventory(req: PlayerIdRequest):
     service = GameService(_repo)
-    try:
-        msg, player, location = service.map_inventory(req.player_id)
-        world_time = _repo.get_world_time()
-        return format_response(msg, player, location, world_time)
-    except ValueError as e:
-        raise_game_error(e)
+    return execute_game_action(service, "map_inventory", req.player_id)
 
 @router.get("/commands", response_model=list[CommandHelpResponse])
 def get_commands():
     service = GameService(_repo)
     return service.get_command_help()
+
+@router.post("/player/inventory")
+def get_player_inventory(req: PlayerIdRequest):
+    service = GameService(_repo)
+    try:
+        player, _ = service._get_player_and_location(req.player_id)
+        if hasattr(player, "inventory") and player.inventory:
+            return serialize_inventory(player.inventory)
+        return []
+    except ValueError as e:
+        raise_game_error(e)

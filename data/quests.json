@@ -1,0 +1,88 @@
+[
+  {
+    "id": "the_awakening",
+    "title": "The Awakening (Tutorial)",
+    "description": "Gather 3 Wood and craft a Stone Pickaxe or Campfire to survive the wilderness.",
+    "is_main_quest": true,
+    "giver_npc_id": "npc_elder",
+    "turn_in_npc_id": "npc_elder",
+    "objectives": [
+      {
+        "id": "obj_wood",
+        "description": "Gather 3 Wood",
+        "objective_type": "gather",
+        "target": "Wood",
+        "required_count": 3,
+        "current_count": 0
+      },
+      {
+        "id": "obj_craft",
+        "description": "Craft a Stone Pickaxe or Torch",
+        "objective_type": "craft",
+        "target": "Torch",
+        "required_count": 1,
+        "current_count": 0
+      }
+    ],
+    "reward": {
+      "xp": 50,
+      "gold": 25,
+      "items": [
+        { "name": "Torch", "qty": 2 }
+      ]
+    },
+    "status": "not_started"
+  },
+  {
+    "id": "first_darkness",
+    "title": "The First Darkness",
+    "description": "Enter the dungeon depth and defeat the Dungeon Boss Guardian.",
+    "is_main_quest": true,
+    "giver_npc_id": "npc_elder",
+    "turn_in_npc_id": "npc_elder",
+    "objectives": [
+      {
+        "id": "obj_boss",
+        "description": "Defeat a Dungeon Boss",
+        "objective_type": "kill",
+        "target": "Boss",
+        "required_count": 1,
+        "current_count": 0
+      }
+    ],
+    "reward": {
+      "xp": 150,
+      "gold": 100,
+      "items": [
+        { "name": "Iron Sword", "qty": 1 }
+      ]
+    },
+    "status": "not_started"
+  },
+  {
+    "id": "worried_farmer",
+    "title": "The Worried Farmer",
+    "description": "Farmer Ted needs you to eliminate 3 hostile cave creatures.",
+    "is_main_quest": false,
+    "giver_npc_id": "npc_farmer_ted",
+    "turn_in_npc_id": "npc_farmer_ted",
+    "objectives": [
+      {
+        "id": "obj_kill_spiders",
+        "description": "Eliminate 3 hostile monsters",
+        "objective_type": "kill",
+        "target": "Cave Spider",
+        "required_count": 3,
+        "current_count": 0
+      }
+    ],
+    "reward": {
+      "xp": 40,
+      "gold": 20,
+      "items": [
+        { "name": "Apple", "qty": 5 }
+      ]
+    },
+    "status": "not_started"
+  }
+]

@@ -11,6 +11,7 @@ class Recipe(BaseModel):
     result_item_id: str
     result_qty: int = 1
     category: str = "general"
+    required_station: Optional[str] = "none" # none, workbench, furnace, anvil, alchemy_table
     
     # We might want to store the item template too to be able to create it
     result_template: Optional[Item] = None

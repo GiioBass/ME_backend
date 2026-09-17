@@ -14,25 +14,21 @@ class DungeonGenerator:
         
     def generate_floor(self, root_x: int, root_y: int, z: int) -> List[Location]:
         """
-        Generates a small mapped dungeon floor (e.g., 3x3 or cross shape).
-        z should be negative.
-        Returns a list of locations created.
+        Generates a procedurally generated dungeon floor using a random walk algorithm.
+        Creates 8 to 15 rooms that are connected, forming closed walls at the edges.
         """
-        
         locations = []
         is_hardcore = random.random() < 0.5
         dungeon_type = "Hardcore Instanced" if is_hardcore else "Farmable Ruins"
-        
-        # Grid layout: Let's do a simple cross or fixed shape for now
-        # Center (0,0) relative to floor: Start/Up stairs
-        # North (0,1): Enemy room
-        # East (1,0): Loot room
-        # South (0,-1): Trap / Empty
-        # North-North (0,2): Boss room / Down stairs
-        
         base_id = f"dng_{root_x}_{root_y}_{z}"
         
-        # 1. Start Room (Up stairs connecting to Z+1)
+        num_rooms = random.randint(8, 15)
+        grid = {} # Map (x, y) -> Location
+        
+        # Room definitions
+        start_coords = (root_x, root_y)
+        
+        # Create start room
         start_loc = Location(
             id=f"{base_id}_start",
             name=f"Dungeon Floor {abs(z)} Entrance",
@@ -44,54 +40,87 @@ class DungeonGenerator:
         else:
             start_loc.exits["up"] = f"dng_{root_x}_{root_y}_{z+1}_boss"
             
+        grid[start_coords] = start_loc
         locations.append(start_loc)
         
-        # 2. Corridor N
-        corr_n = Location(
-            id=f"{base_id}_n",
-            name="Dark Corridor",
-            description="A cold, narrow corridor.",
-            coordinates=Coordinates(x=root_x, y=root_y+1, z=z)
-        )
-        self._link(start_loc, corr_n, "north")
-        corr_n.is_dark = True
-        if random.random() < 0.2: # 20% trap chance
-            corr_n.trap_damage = random.randint(10, 20)
-            corr_n.description += " You feel an uneasy draft here." # Subtle hint
-        self._populate_dungeon_enemies(corr_n, z, is_hardcore)
-        locations.append(corr_n)
+        # Generate layout via random walk
+        curr_x, curr_y = root_x, root_y
+        directions = [(0, 1, 'north', 'south'), (0, -1, 'south', 'north'), (1, 0, 'east', 'west'), (-1, 0, 'west', 'east')]
         
-        # 3. Loot Room E
-        loot_e = Location(
-            id=f"{base_id}_e",
-            name="Storage Room",
-            description="An old storage room scattered with debris.",
-            coordinates=Coordinates(x=root_x+1, y=root_y, z=z)
-        )
-        self._link(start_loc, loot_e, "east")
-        loot_e.is_dark = True
-        if random.random() < 0.2: # 20% trap chance
-            loot_e.trap_damage = random.randint(10, 20)
-        self._populate_dungeon_loot(loot_e, z, is_hardcore)
-        locations.append(loot_e)
-        
-        # 4. Boss Room NN
-        boss_nn = Location(
-            id=f"{base_id}_boss",
-            name="Boss Chamber",
-            description="A massive chamber covered in blood and bones. A terrifying presence watches you.",
-            coordinates=Coordinates(x=root_x, y=root_y+2, z=z)
-        )
-        self._link(corr_n, boss_nn, "north")
-        boss_nn.is_dark = True
-        self._spawn_boss(boss_nn, z)
-        
-        # Next floor exit
-        boss_nn.exits["down"] = f"dng_{root_x}_{root_y}_{z-1}_start"
-        locations.append(boss_nn)
-        
+        for i in range(1, num_rooms):
+            dx, dy, dir_to, dir_from = random.choice(directions)
+            
+            # Simple walk but try to find an empty spot
+            attempts = 0
+            while (curr_x + dx, curr_y + dy) in grid and attempts < 4:
+                dx, dy, dir_to, dir_from = random.choice(directions)
+                attempts += 1
+                
+            # If still stuck, find any existing room with free space around it
+            if (curr_x + dx, curr_y + dy) in grid:
+                for (cx, cy) in list(grid.keys()):
+                    found_free = False
+                    for (ndx, ndy, ndir_to, ndir_from) in directions:
+                        if (cx + ndx, cy + ndy) not in grid:
+                            curr_x, curr_y = cx, cy
+                            dx, dy, dir_to, dir_from = ndx, ndy, ndir_to, ndir_from
+                            found_free = True
+                            break
+                    if found_free: break
+                            
+            curr_x += dx
+            curr_y += dy
+            
+            # Decide room type (last room is boss)
+            is_boss = (i == num_rooms - 1)
+            is_loot = not is_boss and random.random() < 0.3
+            
+            room_id = f"{base_id}_{abs(curr_x)}_{abs(curr_y)}_{i}"
+            if is_boss: room_id = f"{base_id}_boss"
+            
+            name = "Dark Corridor"
+            desc = "A cold, narrow corridor."
+            if is_boss:
+                name = "Boss Chamber"
+                desc = "A massive chamber covered in blood and bones. A terrifying presence watches you."
+            elif is_loot:
+                name = "Storage Room"
+                desc = "An old storage room scattered with debris."
+                
+            new_room = Location(
+                id=room_id,
+                name=name,
+                description=desc,
+                coordinates=Coordinates(x=curr_x, y=curr_y, z=z)
+            )
+            new_room.is_dark = True
+            
+            grid[(curr_x, curr_y)] = new_room
+            locations.append(new_room)
+            
+            # Link room with its adjacent neighbors if they exist in the grid
+            for (nx, ny, ndir_to, ndir_from) in directions:
+                neighbor = grid.get((curr_x + nx, curr_y + ny))
+                if neighbor:
+                    # Link them
+                    new_room.exits[ndir_to] = neighbor.id
+                    neighbor.exits[ndir_from] = new_room.id
+
+            # Populate rooms
+            if is_boss:
+                self._spawn_boss(new_room, z)
+                new_room.exits["down"] = f"dng_{root_x}_{root_y}_{z-1}_start"
+            elif is_loot:
+                if random.random() < 0.2: new_room.trap_damage = random.randint(10, 20)
+                self._populate_dungeon_loot(new_room, z, is_hardcore)
+            else:
+                if random.random() < 0.2:
+                    new_room.trap_damage = random.randint(10, 20)
+                    new_room.description += " You feel an uneasy draft here."
+                self._populate_dungeon_enemies(new_room, z, is_hardcore)
+                
         return locations
-        
+
     def _link(self, a: Location, b: Location, dir_a_to_b: str):
         opposites = {"north": "south", "south": "north", "east": "west", "west": "east"}
         a.exits[dir_a_to_b] = b.id

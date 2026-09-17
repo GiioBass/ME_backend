@@ -52,6 +52,8 @@ class PlayerStatsDB(SQLModel, table=True):
     level: int = 1
     xp: int = 0
     max_weight: float = 50.0
+    gold: int = 50
+    character_class: str = "adventurer"
 
 class InventoryItemDB(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -74,6 +76,10 @@ class PlayerDB(SQLModel, table=True):
     id: str = Field(primary_key=True)
     name: str = Field(index=True, unique=True)
     current_location_id: str
+    active_quests: Dict[str, Any] = Field(default={}, sa_type=JSON)
+    completed_quests: List[str] = Field(default=[], sa_type=JSON)
+    skills: List[str] = Field(default=[], sa_type=JSON)
+    active_dialogue: Optional[Dict[str, Any]] = Field(default=None, sa_type=JSON)
 
 # --- Location Related Models ---
 
@@ -145,6 +151,7 @@ class RecipeDB(SQLModel, table=True):
     result_item_id: str = Field(foreign_key="itemdb.id")
     result_qty: int = 1
     category: str = "general"
+    required_station: Optional[str] = "none"
 
     def to_domain(self, result_item: Optional[Item] = None) -> "Recipe":
         from app.core.domain.recipe import Recipe
@@ -156,6 +163,7 @@ class RecipeDB(SQLModel, table=True):
             result_item_id=self.result_item_id,
             result_qty=self.result_qty,
             category=self.category,
+            required_station=self.required_station or "none",
             result_template=result_item
         )
     
@@ -168,5 +176,6 @@ class RecipeDB(SQLModel, table=True):
             ingredients=recipe.ingredients,
             result_item_id=recipe.result_item_id,
             result_qty=recipe.result_qty,
-            category=recipe.category
+            category=recipe.category,
+            required_station=getattr(recipe, 'required_station', 'none')
         )

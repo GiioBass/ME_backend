@@ -91,6 +91,10 @@ class DataLoader:
             data = json.load(f)
             for recipe_data in data:
                 recipe = Recipe(**recipe_data)
+                if not recipe.result_template:
+                    result_item = self.repo.get_item_by_name(recipe.result_item_id)
+                    if result_item:
+                        recipe.result_template = result_item
                 self.repo.create_recipe(recipe)
         print(f"Seeded {len(data)} recipes from JSON.")
 

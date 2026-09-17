@@ -31,6 +31,17 @@
         "restore_thirst": 5
     },
     {
+        "id": "base_apple",
+        "name": "Apple",
+        "description": "A crisp, delicious red apple.",
+        "item_type": "consumable",
+        "value": 4,
+        "weight": 0.2,
+        "restore_hunger": 20,
+        "restore_hp_pct": 0.10,
+        "restore_thirst": 8
+    },
+    {
         "id": "base_cactus_water",
         "name": "Cactus Water",
         "description": "Water extracted from a cactus.",
@@ -38,5 +49,34 @@
         "value": 2,
         "weight": 0.3,
         "restore_thirst": 20
+    },
+    {
+        "id": "base_health_potion",
+        "name": "Health Potion",
+        "description": "A vial of crimson liquid that rapidly heals wounds.",
+        "item_type": "consumable",
+        "value": 20,
+        "weight": 0.5,
+        "restore_hp": 50,
+        "restore_hp_pct": 0.25
+    },
+    {
+        "id": "base_mana_potion",
+        "name": "Mana Potion",
+        "description": "A glowing azure potion that restores mana.",
+        "item_type": "consumable",
+        "value": 25,
+        "weight": 0.5,
+        "restore_mp": 40,
+        "restore_mp_pct": 0.30
+    },
+    {
+        "id": "base_bandage",
+        "name": "Bandage",
+        "description": "Sterile cloth wraps to treat bleeding and minor wounds.",
+        "item_type": "consumable",
+        "value": 8,
+        "weight": 0.2,
+        "restore_hp": 25
     }
 ]

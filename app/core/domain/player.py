@@ -1,4 +1,4 @@
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 import uuid
 from pydantic import BaseModel, Field
 from app.core.domain.item import Item
@@ -16,15 +16,21 @@ class Stats(BaseModel):
     level: int = 1
     xp: int = 0
     max_weight: float = 50.0
+    gold: int = 50
+    character_class: str = "adventurer"
 
 class Player(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
     stats: Stats = Field(default_factory=Stats)
     current_location_id: str
-    inventory: List[Item] = []
+    inventory: List[Item] = Field(default_factory=list)
     equipment: Dict[str, Optional[Item]] = Field(default_factory=lambda: {"weapon": None, "armor": None})
     waypoints: Dict[str, str] = Field(default_factory=dict) # Name -> location_id
+    active_quests: Dict[str, dict] = Field(default_factory=dict) # quest_id -> Quest dict
+    completed_quests: List[str] = Field(default_factory=list) # quest_ids
+    skills: List[str] = Field(default_factory=list) # skill_ids or names
+    active_dialogue: Optional[Dict[str, Any]] = None # {"npc_id": str, "npc_name": str, "node_id": str}
     
     @property
     def current_weight(self) -> float:

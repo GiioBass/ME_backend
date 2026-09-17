@@ -8,12 +8,52 @@
         "weight": 0.5
     },
     {
+        "id": "base_wood",
+        "name": "Wood",
+        "description": "A block of freshly chopped timber.",
+        "item_type": "material",
+        "value": 2,
+        "weight": 1.0
+    },
+    {
         "id": "base_stone",
         "name": "Stone",
         "description": "A sharp stone.",
         "item_type": "material",
         "value": 1,
         "weight": 0.5
+    },
+    {
+        "id": "base_cloth",
+        "name": "Cloth",
+        "description": "Woven plant fabric.",
+        "item_type": "material",
+        "value": 3,
+        "weight": 0.2
+    },
+    {
+        "id": "base_red_herb",
+        "name": "Red Herb",
+        "description": "A medicinal red herb with soothing properties.",
+        "item_type": "material",
+        "value": 4,
+        "weight": 0.1
+    },
+    {
+        "id": "base_blue_herb",
+        "name": "Blue Herb",
+        "description": "A glowing blue herb infused with latent mana.",
+        "item_type": "material",
+        "value": 5,
+        "weight": 0.1
+    },
+    {
+        "id": "base_iron_ingot",
+        "name": "Iron Ingot",
+        "description": "A heavy bar of refined iron metal.",
+        "item_type": "material",
+        "value": 15,
+        "weight": 2.0
     },
     {
         "id": "base_torch",

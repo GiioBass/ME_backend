@@ -13,10 +13,10 @@ class Location(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
     description: str
-    exits: Dict[str, str] = {}  # direction -> location_id interaction
-    interactables: List[str] = [] # List of interactable object names not picked up
-    items: List[Item] = []
-    camp_storage: List[Item] = []
+    exits: Dict[str, str] = Field(default_factory=dict)  # direction -> location_id interaction
+    interactables: List[str] = Field(default_factory=list) # List of interactable object names not picked up
+    items: List[Item] = Field(default_factory=list)
+    camp_storage: List[Item] = Field(default_factory=list)
     coordinates: Optional[Coordinates] = None
     is_dark: bool = False
     trap_damage: int = 0
@@ -40,7 +40,7 @@ class Location(BaseModel):
         return None
 
     # Forward reference handled by not typing explicitly or using string
-    enemies: List['Enemy'] = [] 
+    enemies: List['Enemy'] = Field(default_factory=list)
 
     def add_enemy(self, enemy):
         self.enemies.append(enemy)

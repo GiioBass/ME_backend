@@ -1,0 +1,196 @@
+[
+  {
+    "id": "npc_elder",
+    "name": "Village Elder",
+    "title": "Guardian of Oakfield",
+    "description": "An old, wise man in tattered robes. He leans upon a carved wooden staff.",
+    "location_id": "loc_0_0_0",
+    "npc_type": "quest_giver",
+    "is_hostile": false,
+    "dialogue_root_node_id": "elder_root",
+    "dialogue_nodes": {
+      "elder_root": {
+        "id": "elder_root",
+        "text": "Greetings, traveler. I see you survived the dark woods. Few have such luck.",
+        "choices": [
+          {
+            "choice_id": "who_are_you",
+            "text": "Who are you?",
+            "next_node_id": "elder_who"
+          },
+          {
+            "choice_id": "where_am_i",
+            "text": "Where am I?",
+            "next_node_id": "elder_where"
+          },
+          {
+            "choice_id": "ask_quest",
+            "text": "Do you have any tasks for me?",
+            "next_node_id": "elder_quest",
+            "action": "give_quest:the_awakening"
+          },
+          {
+            "choice_id": "leave",
+            "text": "I must get going. Farewell.",
+            "next_node_id": null
+          }
+        ]
+      },
+      "elder_who": {
+        "id": "elder_who",
+        "text": "I am the guardian of this settlement. We have resisted the spreading darkness for decades.",
+        "choices": [
+          {
+            "choice_id": "back_to_root",
+            "text": "Tell me more about this place.",
+            "next_node_id": "elder_where"
+          },
+          {
+            "choice_id": "leave",
+            "text": "May the gods guide you.",
+            "next_node_id": null
+          }
+        ]
+      },
+      "elder_where": {
+        "id": "elder_where",
+        "text": "You are in the Echo Valley. To the north lie old abandoned mines; to the south, the scorched desert.",
+        "choices": [
+          {
+            "choice_id": "back_to_root",
+            "text": "I have other questions.",
+            "next_node_id": "elder_root"
+          },
+          {
+            "choice_id": "leave",
+            "text": "Thank you for the directions.",
+            "next_node_id": null
+          }
+        ]
+      },
+      "elder_quest": {
+        "id": "elder_quest",
+        "text": "Our settlement needs basic supplies to reinforce the perimeter. Start by gathering wood, crafting an axe and building a campfire.",
+        "choices": [
+          {
+            "choice_id": "accept",
+            "text": "I will do it.",
+            "next_node_id": null
+          }
+        ]
+      }
+    },
+    "shop_inventory": []
+  },
+  {
+    "id": "npc_merchant",
+    "name": "Merchant Silas",
+    "title": "Traveling Trader",
+    "description": "A shrewd merchant surrounded by crates, satchels and shiny trinkets.",
+    "location_id": "loc_0_0_0",
+    "npc_type": "merchant",
+    "is_hostile": false,
+    "dialogue_root_node_id": "merchant_root",
+    "dialogue_nodes": {
+      "merchant_root": {
+        "id": "merchant_root",
+        "text": "Looking for gear, traveler? I have the finest wares... that can be found in these barren lands.",
+        "choices": [
+          {
+            "choice_id": "trade",
+            "text": "Show me what you have for sale.",
+            "next_node_id": "merchant_trade",
+            "action": "open_shop"
+          },
+          {
+            "choice_id": "rumors",
+            "text": "Heard any interesting rumors?",
+            "next_node_id": "merchant_rumors"
+          },
+          {
+            "choice_id": "leave",
+            "text": "Just browsing. Farewell.",
+            "next_node_id": null
+          }
+        ]
+      },
+      "merchant_rumors": {
+        "id": "merchant_rumors",
+        "text": "They say strange lights flickered around the dungeon entrance last night. Watch your back down there.",
+        "choices": [
+          {
+            "choice_id": "back_trade",
+            "text": "Let me look at your goods instead.",
+            "next_node_id": "merchant_trade",
+            "action": "open_shop"
+          },
+          {
+            "choice_id": "leave",
+            "text": "Thanks for the warning.",
+            "next_node_id": null
+          }
+        ]
+      },
+      "merchant_trade": {
+        "id": "merchant_trade",
+        "text": "Take your time. Good steel is worth its weight in gold.",
+        "choices": [
+          {
+            "choice_id": "leave",
+            "text": "That is all for now.",
+            "next_node_id": null
+          }
+        ]
+      }
+    },
+    "shop_inventory": [
+      { "item_name": "Health Potion", "buy_price": 20, "sell_price": 10, "stock": -1 },
+      { "item_name": "Mana Potion", "buy_price": 25, "sell_price": 12, "stock": -1 },
+      { "item_name": "Torch", "buy_price": 5, "sell_price": 2, "stock": -1 },
+      { "item_name": "Empty Flask", "buy_price": 4, "sell_price": 2, "stock": -1 },
+      { "item_name": "Bandage", "buy_price": 8, "sell_price": 4, "stock": -1 },
+      { "item_name": "Iron Ingot", "buy_price": 15, "sell_price": 7, "stock": 10 }
+    ]
+  },
+  {
+    "id": "npc_farmer_ted",
+    "name": "Farmer Ted",
+    "title": "Distressed Farmer",
+    "description": "A weathered farmer covered in dirt, looking anxious and pacing nervously.",
+    "location_id": "loc_0_0_0",
+    "npc_type": "quest_giver",
+    "is_hostile": false,
+    "dialogue_root_node_id": "ted_root",
+    "dialogue_nodes": {
+      "ted_root": {
+        "id": "ted_root",
+        "text": "Oh, thank goodness someone capable is here! Giant vermin have infested my cellar!",
+        "choices": [
+          {
+            "choice_id": "help_ted",
+            "text": "What kind of vermin? I can help.",
+            "next_node_id": "ted_quest",
+            "action": "give_quest:worried_farmer"
+          },
+          {
+            "choice_id": "ignore_ted",
+            "text": "Not my problem, old man.",
+            "next_node_id": null
+          }
+        ]
+      },
+      "ted_quest": {
+        "id": "ted_quest",
+        "text": "Foul cave spiders and giant rats! Slay 3 of them and I'll reward you with gold and fresh apples!",
+        "choices": [
+          {
+            "choice_id": "accept",
+            "text": "Consider it done.",
+            "next_node_id": null
+          }
+        ]
+      }
+    },
+    "shop_inventory": []
+  }
+]

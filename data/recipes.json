@@ -2,14 +2,29 @@
     {
         "name": "Torch",
         "description": "Light up the darkness.",
+        "category": "survival",
+        "required_station": "none",
         "ingredients": {
-            "Stick": 2
+            "Stick": 1,
+            "Stone": 1
         },
         "result_item_id": "base_torch"
     },
     {
+        "name": "Bandage",
+        "description": "Clean wraps to heal minor injuries.",
+        "category": "survival",
+        "required_station": "none",
+        "ingredients": {
+            "Cloth": 2
+        },
+        "result_item_id": "base_bandage"
+    },
+    {
         "name": "Stone Knife",
         "description": "A basic sharp tool.",
+        "category": "tools",
+        "required_station": "none",
         "ingredients": {
             "Stick": 1,
             "Stone": 1
@@ -19,10 +34,56 @@
     {
         "name": "Stone Axe",
         "description": "A heavy chopping tool.",
+        "category": "tools",
+        "required_station": "none",
         "ingredients": {
             "Stick": 2,
             "Stone": 1
         },
         "result_item_id": "base_stone_axe"
+    },
+    {
+        "name": "Stone Pickaxe",
+        "description": "A reliable stone pick for mining rock and ore.",
+        "category": "tools",
+        "required_station": "workbench",
+        "ingredients": {
+            "Stone": 3,
+            "Stick": 2
+        },
+        "result_item_id": "base_stone_pickaxe"
+    },
+    {
+        "name": "Iron Sword",
+        "description": "A lethal sharpened blade forged of solid iron.",
+        "category": "weapons",
+        "required_station": "anvil",
+        "ingredients": {
+            "Iron Ingot": 2,
+            "Stick": 1
+        },
+        "result_item_id": "base_iron_sword"
+    },
+    {
+        "name": "Health Potion",
+        "description": "A brewed healing potion using fresh herbs.",
+        "category": "alchemy",
+        "required_station": "alchemy_table",
+        "ingredients": {
+            "Water Flask": 1,
+            "Red Herb": 2
+        },
+        "result_item_id": "base_health_potion"
+    },
+    {
+        "name": "Mana Potion",
+        "description": "A potent draught of restored mana essence.",
+        "category": "alchemy",
+        "required_station": "alchemy_table",
+        "ingredients": {
+            "Water Flask": 1,
+            "Blue Herb": 2
+        },
+        "result_item_id": "base_mana_potion"
     }
 ]

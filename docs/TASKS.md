@@ -16,9 +16,9 @@ Esta lista detalla las tareas pendientes para evolucionar el prototipo actual ha
     - [x] Refactorización de tests y organización de archivos.
     - [x] Implementar sistema de Blueprints (Plantillas JSON) para Puntos de Interés Dinámicos generados procedimentalmente con enemigos y botín.
     - [x] Translate blueprint names and descriptions to English.
-- [ ] **Expansión de Generación del Mundo (Nuevos features)**
+- [x] **Expansión de Generación del Mundo (Nuevos features)**
     - [ ] Generación procedural de Pueblos/Villas.
-    - [ ] Agregar NPCs (Non-Playable Characters) interactuables/comerciantes.
+    - [x] Agregar NPCs (Non-Playable Characters) interactuables/comerciantes y diálogos interactivos.
     - [x] Generación procedural de Mazmorras (Dungeons).
     - [x] Actualizar acción `scout` (radar) para detectar entradas de mazmorras.
     - [x] Actualizar acción `scout` dentro de mazmorras para señalar la salida a la superficie.
@@ -34,7 +34,23 @@ Esta lista detalla las tareas pendientes para evolucionar el prototipo actual ha
     - [x] Beber directamente desde fuentes de agua (Drink Action).
     - [x] Reciclaje de frascos: Recuperar frasco vacío al consumir agua.
 
-## 2. Sistema de Items e Inventario
+## 2. Sistema de Crafteo y Estaciones de Trabajo
+- [x] Crafteo básico en inventario (Antorchas, Vendas, Cuchillos).
+- [x] Validación de Estaciones de Trabajo (Mesa de Trabajo, Horno, Yunque, Mesa de Alquimia).
+- [x] Recetas avanzadas (Pico de piedra, Espada de hierro, Poción de vida/maná).
+
+## 3. Sistema de Misiones y Narrativa (Quests)
+- [x] Misiones principales (El Despertar, La Primera Oscuridad).
+- [x] Misiones secundarias (El Granjero Preocupado).
+- [x] Seguimiento automático de objetivos (GATHER, KILL, CRAFT).
+- [x] Sistema de entrega de misiones y recompensas (XP, Oro, Items).
+
+## 4. Sistema de Clases y Habilidades (Skills)
+- [x] Clases seleccionables: Luchador (Fighter), Tirador (Marksman), Mago (Mage).
+- [x] Habilidades activas en combate con costo de Maná/Energía y escalado de daño.
+- [x] Comando y endpoint de ejecución de skills (`skill [nombre] [target]`).
+
+## 5. Sistema de Items e Inventario
 - [x] **Entidades de Items**
     - [x] Definición de tipos de items (Weapon, Armor, Consumable, Material).
     - [x] Atributos (Weight, Value, Durability, Effects).

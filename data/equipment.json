@@ -24,6 +24,32 @@
         }
     },
     {
+        "id": "base_stone_pickaxe",
+        "name": "Stone Pickaxe",
+        "description": "A sturdy stone pickaxe for breaking rock and mining.",
+        "item_type": "tool",
+        "value": 20,
+        "weight": 3.0,
+        "equip_slot": "weapon",
+        "stat_bonuses": {
+            "strength": 4
+        }
+    },
+    {
+        "id": "base_iron_sword",
+        "name": "Iron Sword",
+        "description": "A lethal sharpened blade forged of solid iron.",
+        "item_type": "weapon",
+        "value": 60,
+        "weight": 3.5,
+        "equip_slot": "weapon",
+        "stat_bonuses": {
+            "strength": 12
+        },
+        "durability": 100,
+        "max_durability": 100
+    },
+    {
         "id": "base_rusty_sword",
         "name": "Rusty Sword",
         "description": "An old sword, heavily rusted.",

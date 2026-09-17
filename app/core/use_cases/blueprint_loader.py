@@ -60,14 +60,22 @@ class POIBlueprint(BaseModel):
         return items
 
 class BlueprintLoader:
-    def __init__(self, file_path: str = "app/data/blueprints.json"):
+    def __init__(self, file_path: Optional[str] = None):
+        if file_path is None:
+            # Resolve relative to project root
+            base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../data"))
+            file_path = os.path.join(base_dir, "blueprints.json")
         self.file_path = file_path
         self.blueprints: List[POIBlueprint] = []
         self._load()
 
     def _load(self):
         if not os.path.exists(self.file_path):
-            return
+            # Fallback check
+            if os.path.exists("data/blueprints.json"):
+                self.file_path = "data/blueprints.json"
+            else:
+                return
             
         with open(self.file_path, "r", encoding="utf-8") as f:
             data = json.load(f)

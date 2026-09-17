@@ -64,7 +64,11 @@ class SQLGameRepository(GameRepository):
                 stats=stats,
                 inventory=inventory,
                 equipment=equipment,
-                waypoints=waypoints
+                waypoints=waypoints,
+                active_quests=getattr(db_player, "active_quests", {}) or {},
+                completed_quests=getattr(db_player, "completed_quests", []) or [],
+                skills=getattr(db_player, "skills", []) or [],
+                active_dialogue=getattr(db_player, "active_dialogue", None)
             )
             return player
 
@@ -78,7 +82,15 @@ class SQLGameRepository(GameRepository):
     def save_player(self, player: Player) -> Player:
         with Session(self.engine) as session:
             # 1. Save Player Core
-            db_player = PlayerDB(id=player.id, name=player.name, current_location_id=player.current_location_id)
+            db_player = PlayerDB(
+                id=player.id, 
+                name=player.name, 
+                current_location_id=player.current_location_id,
+                active_quests=player.active_quests,
+                completed_quests=player.completed_quests,
+                skills=player.skills,
+                active_dialogue=player.active_dialogue
+            )
             session.merge(db_player)
             
             # 2. Save Stats
