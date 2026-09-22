@@ -11,6 +11,26 @@
         "result_item_id": "base_torch"
     },
     {
+        "name": "Cloth",
+        "description": "Weave clean fabric from sheared wool.",
+        "category": "crafting",
+        "required_station": "none",
+        "ingredients": {
+            "Wool": 2
+        },
+        "result_item_id": "base_cloth"
+    },
+    {
+        "name": "Cloth Tunic",
+        "description": "A simple hand-stitched cloth tunic for basic protection.",
+        "category": "armor",
+        "required_station": "none",
+        "ingredients": {
+            "Cloth": 3
+        },
+        "result_item_id": "base_torn_tunic"
+    },
+    {
         "name": "Bandage",
         "description": "Clean wraps to heal minor injuries.",
         "category": "survival",
@@ -52,6 +72,28 @@
             "Stick": 2
         },
         "result_item_id": "base_stone_pickaxe"
+    },
+    {
+        "name": "Wooden Shield",
+        "description": "Craft a sturdy defensive wooden shield.",
+        "category": "armor",
+        "required_station": "workbench",
+        "ingredients": {
+            "Wood": 2,
+            "Cloth": 1
+        },
+        "result_item_id": "base_cracked_shield"
+    },
+    {
+        "name": "Worn Leather Armor",
+        "description": "Stitch together wolf pelts and cloth into wearable protective armor.",
+        "category": "armor",
+        "required_station": "workbench",
+        "ingredients": {
+            "Wolf Pelt": 2,
+            "Cloth": 1
+        },
+        "result_item_id": "base_leather_armor"
     },
     {
         "name": "Iron Sword",

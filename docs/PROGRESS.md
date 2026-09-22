@@ -40,9 +40,10 @@ El archivo monolítico `game_service.py` (>1,250 líneas) fue descompuesto en se
 #### 1. Sistema de NPCs, Diálogos y Comercio (`DIALOGUES.md`)
 - Entidades de dominio: `NPC`, `DialogueNode`, `DialogueChoice`, `ShopItem`.
 - NPCs configurados en Oakfield Hub: **Village Elder**, **Merchant Silas**, **Farmer Ted**.
-- Árboles de diálogo con opciones interactivas y cheques condicionales.
+- Árboles de diálogo con opciones interactivas, cheques condicionales y comandos de salida (`leave`, `exit`, `bye`).
 - Catálogo de tienda con compra y venta de items (`buy [item]`, `sell [item]`, `shop`).
-- Endpoints REST: `/action/talk`, `/action/dialogue`, `/action/buy`, `/action/sell`.
+- Endpoints REST: `/action/talk`, `/action/dialogue`, `/action/dialogue/end`, `/action/buy`, `/action/sell`.
+- Integración Frontend: Modal interactivo de diálogos con soporte de cierre reactivo instantáneo (`DialogueModal`).
 
 #### 2. Sistema de Misiones / Quests (`QUESTS.md`)
 - Entidades de dominio: `Quest`, `QuestObjective`, `QuestReward`.

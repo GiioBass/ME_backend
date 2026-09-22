@@ -39,11 +39,15 @@ Esta lista detalla las tareas pendientes para evolucionar el prototipo actual ha
 - [x] Validación de Estaciones de Trabajo (Mesa de Trabajo, Horno, Yunque, Mesa de Alquimia).
 - [x] Recetas avanzadas (Pico de piedra, Espada de hierro, Poción de vida/maná).
 
-## 3. Sistema de Misiones y Narrativa (Quests)
+## 3. Sistema de Misiones, Diálogos y Narrativa (Quests & NPCs)
 - [x] Misiones principales (El Despertar, La Primera Oscuridad).
 - [x] Misiones secundarias (El Granjero Preocupado).
 - [x] Seguimiento automático de objetivos (GATHER, KILL, CRAFT).
 - [x] Sistema de entrega de misiones y recompensas (XP, Oro, Items).
+- [x] **Completar diálogos de los aldeanos (Villagers):**
+    - [x] Desarrollar y cerrar todos los árboles conversacionales de los aldeanos y NPCs con soporte de salida y finalización (`end_dialogue`, `leave`, `exit`, `bye`).
+    - [x] Enriquecimiento automático de nodos de diálogo (`text` y `options` con texto descriptivo) desde el backend para el modal interactivo.
+    - [x] Integrar control de cierre de conversación y sincronización de estado en el Frontend (`DialogueModal`).
 
 ## 4. Sistema de Clases y Habilidades (Skills)
 - [x] Clases seleccionables: Luchador (Fighter), Tirador (Marksman), Mago (Mage).
@@ -68,6 +72,8 @@ Esta lista detalla las tareas pendientes para evolucionar el prototipo actual ha
 - [ ] **Persistencia de Items**
     - [x] Guardar inventario del jugador en base de datos/repositorio.
     - [x] Guardar items tirados en el suelo (en `Location`).
+- [ ] **Economía y Comerciantes Especializados**
+    - [ ] **Objetos Especiales para Merchant Silas:** Dotar a Silas de un catálogo único y exclusivo con items especiales (artefactos raros, baratijas de viajero, equipo o consumibles exóticos) para diferenciarlo de las tiendas genéricas del Market.
 
 - [x] Combat System
     - [x] Define Enemy Entity <!-- id: 15 -->

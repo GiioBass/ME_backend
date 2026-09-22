@@ -122,6 +122,24 @@ def serialize_player(player) -> dict:
     
     if "inventory" in data and data["inventory"]:
         data["inventory"] = serialize_inventory(data["inventory"])
+
+    # Enrich active_dialogue with text and choices if active
+    if data.get("active_dialogue"):
+        try:
+            dlg = data["active_dialogue"]
+            npc_id = (dlg.get("npc_id") or "").lower()
+            node_id = dlg.get("node_id")
+            service = GameService(_repo)
+            npc = service.dialogue_service.npcs.get(npc_id)
+            if npc and node_id and node_id in npc.dialogue_nodes:
+                node = npc.dialogue_nodes[node_id]
+                dlg["text"] = node.text
+                dlg["options"] = [
+                    {"id": str(i + 1), "text": c.text, "choice_id": c.choice_id}
+                    for i, c in enumerate(node.choices)
+                ]
+        except Exception:
+            pass
         
     # Serialize equipment which might contain domain Items
     if "equipment" in data and data["equipment"]:
@@ -232,10 +250,7 @@ def raise_game_error(e: ValueError):
 def get_available_actions(player: dict, location: dict, world_time: dict) -> list[str]:
     actions = ["look", "inventory", "scout", "quests"]
     
-    # Class choices if not yet picked
-    if player and player.get("stats", {}).get("character_class") == "adventurer":
-        actions.extend(["class fighter", "class marksman", "class mage"])
-    elif player and player.get("skills"):
+    if player and player.get("skills"):
         actions.append("skills")
 
     # If currently in dialogue
@@ -322,21 +337,48 @@ def get_available_actions(player: dict, location: dict, world_time: dict) -> lis
                     name = item.get("name") if isinstance(item, dict) else item
                     actions.append(f"retrieve {name}")
                     
-    # Crafting
-    actions.append("recipes")
+    # Workstation & Crafting Checks
+    loc_interactables = location.get("interactables", []) if location else []
+    
+    has_workbench = any("workbench" in str(inter).lower() for inter in loc_interactables)
+    has_forge = any(any(k in str(inter).lower() for k in ["forge", "anvil"]) for inter in loc_interactables)
+    has_alchemy = any("alchemy" in str(inter).lower() for inter in loc_interactables)
+    has_campfire = any("campfire" in str(inter).lower() for inter in loc_interactables)
+    has_any_station = has_workbench or has_forge or has_alchemy or has_campfire or any("station:" in str(inter).lower() or "workshop" in str(inter).lower() for inter in loc_interactables)
+
+    if has_any_station:
+        actions.append("workshop")
+
+    # Only provide craft actions if the player is actually at a valid workstation
     recipes = _repo.get_recipes()
-    if player and player.get("inventory"):
+    if player and player.get("inventory") and has_any_station:
         from collections import Counter
         inv_counts = Counter(item.get("name") if isinstance(item, dict) else getattr(item, "name", "") for item in player["inventory"])
         
         for r in recipes:
-            can_craft = True
-            for ing_name, qty in r.ingredients.items():
-                if inv_counts[ing_name] < qty:
-                    can_craft = False
-                    break
-            if can_craft:
-                actions.append(f"craft {r.name}")
+            req_station = getattr(r, 'required_station', 'none').lower()
+            station_ok = False
+            if req_station in ["none", ""]:
+                station_ok = True
+            elif req_station == "workbench" and has_workbench:
+                station_ok = True
+            elif req_station in ["anvil", "forge"] and has_forge:
+                station_ok = True
+            elif req_station in ["alchemy_table", "alchemy"] and has_alchemy:
+                station_ok = True
+            elif req_station == "campfire" and has_campfire:
+                station_ok = True
+            elif any(req_station in str(inter).lower() for inter in loc_interactables):
+                station_ok = True
+                
+            if station_ok:
+                can_craft = True
+                for ing_name, qty in r.ingredients.items():
+                    if inv_counts[ing_name] < qty:
+                        can_craft = False
+                        break
+                if can_craft:
+                    actions.append(f"craft {r.name}")
 
     return list(dict.fromkeys(actions))
 
@@ -352,10 +394,13 @@ def format_response(msg: str, player: dict, location: dict, world_time: dict, sc
             "items": [serialize_item(i) for i in location.items],
             "camp_storage": [serialize_item(i) for i in getattr(location, 'camp_storage', [])],
             "enemies": [serialize_enemy(e) for e in location.enemies],
+            "interactables": list(getattr(location, 'interactables', [])),
             "coordinates": location.coordinates.model_dump() if location.coordinates else None,
         }
     else:
-        serialized_location = location
+        serialized_location = dict(location)
+        if "interactables" not in serialized_location:
+            serialized_location["interactables"] = []
         
     serialized_time = serialize_time(world_time)
     actions = get_available_actions(serialized_player, serialized_location, serialized_time)
@@ -494,6 +539,11 @@ def action_talk(req: TalkRequest):
 def action_dialogue(req: DialogueRequest):
     service = GameService(_repo)
     return execute_game_action(service, "choose_dialogue_option", req.player_id, req.choice)
+
+@router.post("/action/dialogue/end", response_model=GameResponse)
+def action_dialogue_end(req: PlayerIdRequest):
+    service = GameService(_repo)
+    return execute_game_action(service, "end_dialogue", req.player_id)
 
 @router.post("/action/buy", response_model=GameResponse)
 def action_buy(req: TradeRequest):

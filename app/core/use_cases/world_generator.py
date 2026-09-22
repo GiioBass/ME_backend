@@ -21,8 +21,18 @@ class WorldGenerator:
     def generate_limbo(self) -> Location:
         return Location(id="limbo", name="Limbo", description="You are floating in nothingness.")
 
-    def generate_single_location(self, x: int, y: int, z: int, biome: str = "forest") -> Location:
+    def get_biome_for_coords(self, x: int, y: int, z: int) -> str:
+        if z < 0:
+            return "underground"
+        if y <= -2:
+            return "desert"
+        return "forest"
+
+    def generate_single_location(self, x: int, y: int, z: int, biome: str = None) -> Location:
         """Generates a single location at specific coordinates."""
+        if biome is None:
+            biome = self.get_biome_for_coords(x, y, z)
+            
         loc_id = f"loc_{x}_{y}_{z}"
         
         if z < 0:
@@ -37,27 +47,30 @@ class WorldGenerator:
             poi = next((p for p in self.world_config.get("pois", []) 
                        if p["coords"]["x"] == x and p["coords"]["y"] == y and p["coords"]["z"] == z), None)
             
+            attached_bp = None
             if poi:
                 name = poi["name"]
                 desc = poi["description"]
-                attached_bp = None
+                # Check if matching blueprint exists for POI name
+                matched_bps = [bp for bp in self.blueprint_loader.blueprints if bp.name.lower() in name.lower() or name.lower() in bp.name.lower()]
+                if matched_bps:
+                    attached_bp = matched_bps[0]
             else:
-                if random.random() < 0.05:
-                    # Spawn a POI instead of Wilderness
+                is_start = (x == 0 and y == 0 and z == 0)
+                if not is_start and random.random() < 0.10:
+                    # Spawn a procedural POI instead of generic Wilderness
                     valid_blueprints = self.blueprint_loader.get_blueprints_for_biome(biome)
                     if valid_blueprints:
                         bp = random.choice(valid_blueprints)
-                        name = bp.name
+                        name = f"{bp.name} ({x},{y})"
                         desc = bp.description
                         attached_bp = bp
                     else:
                         name = f"{biome.capitalize()} {x},{y}"
                         desc = self._generate_description(biome, x, y)
-                        attached_bp = None
                 else:
                     name = f"{biome.capitalize()} {x},{y}"
                     desc = self._generate_description(biome, x, y)
-                    attached_bp = None
             
             location = Location(
                 id=loc_id,
@@ -66,20 +79,26 @@ class WorldGenerator:
                 coordinates=Coordinates(x=x, y=y, z=z)
             )
 
-            # Chance for Cave Entrance
-            cave_conf = self.world_config.get("cave_entrance", {"chance": 0.1, "description_suffix": " You see a dark opening leading down."})
-            if z == 0 and random.random() < cave_conf["chance"]:
-                location.description += cave_conf["description_suffix"]
-                cave_id = f"dng_{x}_{y}_{z-1}_start"
-                location.exits["down"] = cave_id
+            # Cave Entrances (mines, crypts, caves)
+            is_cave_poi = any(k in name.lower() for k in ["mine", "cave", "crypt", "cavern", "ruins"])
+            cave_conf = self.world_config.get("cave_entrance", {"chance": 0.08, "description_suffix": " You see a dark opening leading down."})
+            if z == 0 and (is_cave_poi or random.random() < cave_conf["chance"]):
+                if "down" not in location.exits:
+                    cave_id = f"dng_{x}_{y}_{z-1}_start"
+                    location.exits["down"] = cave_id
+                    if cave_conf["description_suffix"] not in location.description:
+                        location.description += cave_conf["description_suffix"]
 
-            # Chance for Water Source
-            water_conf = self.world_config.get("water_sources", {"chance": 0.15, "types": ["River", "Stream", "Small Lake", "Old Well"]})
-            if z == 0 and random.random() < water_conf["chance"]:
-                w_type = random.choice(water_conf["types"])
-                location.name = f"{w_type} at {x},{y}"
-                location.description += f" A refreshing {w_type.lower()} is here."
-                location.interactables.append(f"water_source:{w_type}")
+            # Water Sources (oases, springs, rivers, lakes, wells)
+            is_water_poi = any(k in name.lower() for k in ["oasis", "spring", "river", "lake", "well"])
+            water_conf = self.world_config.get("water_sources", {"chance": 0.06, "types": ["River", "Stream", "Small Lake", "Old Well", "Crystal Spring", "Oasis"]})
+            if z == 0 and (is_water_poi or random.random() < water_conf["chance"]):
+                w_type = next((t for t in ["Oasis", "Crystal Spring", "River", "Lake", "Well", "Stream"] if t.lower() in name.lower()), random.choice(water_conf["types"]))
+                if not any("water_source" in str(inter) for inter in location.interactables):
+                    location.interactables.append(f"water_source:{w_type}")
+                if not is_water_poi:
+                    location.name = f"{w_type} at {x},{y}"
+                    location.description += f" A refreshing {w_type.lower()} is here."
 
             if attached_bp:
                 for e in attached_bp.create_enemies(): location.add_enemy(e)

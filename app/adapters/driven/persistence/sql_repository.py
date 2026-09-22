@@ -10,11 +10,12 @@ from app.adapters.driven.persistence.sql_models import (
     LocationDB, LocationExitDB, LocationInteractableDB, LocationItemDB,
     EnemyDB, LocationEnemyDB, ItemDB, WorldStateDB, CommandHelpDB, RecipeDB
 )
-from app.adapters.driven.persistence.db_config import engine
+from app.adapters.driven.persistence.db_config import engine, create_db_and_tables
 
 class SQLGameRepository(GameRepository):
     def __init__(self, db_engine=None):
         self.engine = db_engine or engine
+        create_db_and_tables()
 
     # --- Player Persistence ---
     def get_player(self, player_id: str) -> Optional[Player]:
@@ -68,6 +69,7 @@ class SQLGameRepository(GameRepository):
                 active_quests=getattr(db_player, "active_quests", {}) or {},
                 completed_quests=getattr(db_player, "completed_quests", []) or [],
                 skills=getattr(db_player, "skills", []) or [],
+                skill_cooldowns=getattr(db_player, "skill_cooldowns", {}) or {},
                 active_dialogue=getattr(db_player, "active_dialogue", None)
             )
             return player
@@ -89,6 +91,7 @@ class SQLGameRepository(GameRepository):
                 active_quests=player.active_quests,
                 completed_quests=player.completed_quests,
                 skills=player.skills,
+                skill_cooldowns=player.skill_cooldowns,
                 active_dialogue=player.active_dialogue
             )
             session.merge(db_player)

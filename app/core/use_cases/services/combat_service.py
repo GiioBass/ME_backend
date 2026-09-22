@@ -22,15 +22,20 @@ class CombatService(BaseGameService):
         if not enemy:
             return f"You don't see '{target_name}' here.", player, location
 
-        # Calculate player damage
+        # Calculate player damage (balanced base scaling)
         total_strength = player.stats.strength
         weapon = player.equipment.get("weapon")
         if weapon and "strength" in weapon.stat_bonuses:
             total_strength += weapon.stat_bonuses["strength"]
             
-        damage = max(1, (total_strength // 2))
+        damage = max(1, (total_strength // 3))
         actual_dmg = enemy.take_damage(damage)
-        combat_log = f"You hit {enemy.name} for {actual_dmg} damage. (Enemy HP: {enemy.hp}/{enemy.max_hp})"
+        combat_log = f"You strike {enemy.name} for {actual_dmg} damage. (Enemy HP: {enemy.hp}/{enemy.max_hp})"
+        
+        # Basic attack recharges tactical stance/skills
+        if getattr(player, "skill_cooldowns", None):
+            player.skill_cooldowns.clear()
+            combat_log += " Tactical stance refreshed!"
         
         if enemy.is_dead:
             combat_log += f"\n{enemy.name} collapses and dies!"
@@ -42,27 +47,9 @@ class CombatService(BaseGameService):
                 q_log = self.quest_service.update_kill_progress(player, enemy.name)
                 combat_log += q_log
             
-            # Chance to drop worn equipment (10%)
-            if random.random() < 0.10:
-                equipment_pool = [
-                    {"name": "Rusty Sword", "type": ItemType.WEAPON, "desc": "An old sword, heavily rusted.", "weight": 3.0, "slot": "weapon", "stats": {"strength": 1}, "durability": 5, "max_durability": 100},
-                    {"name": "Torn Tunic", "type": ItemType.ARMOR, "desc": "A moth-eaten cloth tunic.", "weight": 1.0, "slot": "armor", "stats": {"defense": 1}, "durability": 10, "max_durability": 100}
-                ]
-                choice = random.choice(equipment_pool)
-                item = Item(
-                    id=str(uuid.uuid4()),
-                    name=choice["name"],
-                    description=choice["desc"],
-                    item_type=choice["type"],
-                    value=5,
-                    weight=choice["weight"],
-                    equip_slot=choice["slot"],
-                    stat_bonuses=choice["stats"],
-                    durability=choice["durability"],
-                    max_durability=choice["max_durability"]
-                )
-                location.items.append(item)
-                combat_log += f"\n{enemy.name} dropped a {item.name}!"
+            # Thematic Monster Drops
+            drop_log = self._generate_enemy_loot(enemy, location)
+            combat_log += drop_log
             
             self.repo.save_player(player)
             self.repo.create_location(location)

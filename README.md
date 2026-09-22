@@ -57,3 +57,9 @@ Run the test suite:
 ```bash
 pytest
 ```
+
+## Client & Mobile Application (Compilation & Build)
+
+For instructions on compiling the web frontend (`dist/`) and generating the **Android APK (Capacitor)**, see:
+- [Frontend README & Build Guide](file:///var/www/html/ME_frontend/README.md#compilaci%C3%B3n-web--android-apk--capacitor)
+- [Mobile Android Build Guide](file:///var/www/html/ME_frontend/docs/mobile_build_guide.md)

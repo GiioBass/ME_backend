@@ -18,6 +18,7 @@ def test_passive_heal():
     repo.save_world_time(time)
 
     loc = repo.get_location(player.current_location_id)
+    loc.enemies = []
     # create north location to move to
     loc.exits["north"] = "loc_0_1_0"
     repo.create_location(loc)

@@ -22,3 +22,11 @@ Guiones y árboles de conversación para NPCs importantes.
         - Fallo: "¡Ja! ¡Inténtalo!" (Inicia Combate).
     - **Opción B:** (Pagar 10 monedas) "Toma, es todo lo que tengo."
     - **Opción C:** (Atacar) [Inicia Combate instantáneo].
+
+## 3. Estado de Tareas (Diálogos y Comercio)
+- [x] **Completar diálogos de los aldeanos (Villagers):**
+    - [x] Redactar e implementar ramas completas de conversación para aldeanos y NPCs interactivos.
+    - [x] Soporte para salida y finalización fluida de conversaciones (`leave`, `exit`, `end_dialogue`) desde backend y modal en frontend.
+    - [x] Enriquecimiento automático de opciones con texto legible en las respuestas del API.
+- [ ] **Inventario Especial para Merchant Silas:**
+    - [ ] Dotar a Silas de mercancías exclusivas y exóticas distintas al stock general del Market (ej. reliquias de viaje, pociones especiales, mapas antiguos).

@@ -78,5 +78,15 @@
         "value": 8,
         "weight": 0.2,
         "restore_hp": 25
+    },
+    {
+        "id": "base_water_flask",
+        "name": "Water Flask",
+        "description": "A flask filled with pure, refreshing spring water.",
+        "item_type": "consumable",
+        "value": 6,
+        "weight": 0.8,
+        "restore_thirst": 50,
+        "restore_hp": 5
     }
 ]

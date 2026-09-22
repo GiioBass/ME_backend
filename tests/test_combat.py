@@ -14,7 +14,7 @@ def test_combat_flow():
     loc = repo.get_location(player.current_location_id)
     
     # 2. Add Enemy Manually
-    goblin = Enemy(name="Goblin", description="Nasty", hp=10, max_hp=10, attack=2, xp_reward=50)
+    goblin = Enemy(name="Goblin", description="Nasty", hp=6, max_hp=6, attack=2, xp_reward=50)
     loc.add_enemy(goblin)
     repo.create_location(loc)
     
@@ -23,15 +23,15 @@ def test_combat_flow():
     assert "Goblin" in msg
     
     # 4. Attack Enemy (First Hit)
-    # Player strength 10 -> damage 5. Enemy HP 10 -> 5.
+    # Player strength 10 -> damage 3. Enemy HP 6 -> 3.
     msg, p, l = service.process_command(player.id, "attack Goblin")
-    assert "hit Goblin for 5" in msg
+    assert "strike Goblin for 3" in msg
     assert "Goblin retaliates for" in msg
     
     # Check Persistence
     updated_loc = repo.get_location(player.current_location_id)
     assert len(updated_loc.enemies) == 1
-    assert updated_loc.enemies[0].hp == 5
+    assert updated_loc.enemies[0].hp == 3
     
     # 5. Kill Enemy
     msg, p, l = service.process_command(player.id, "attack Goblin")
@@ -71,6 +71,42 @@ def test_player_death():
     assert updated_player.stats.hp == updated_player.stats.max_hp
     assert updated_player.current_location_id == "loc_0_0_0"
 
+def test_thematic_enemy_loot_drop():
+    repo = InMemoryGameRepository()
+    service = GameService(repo)
+    player, _ = service.create_new_player("Hunter")
+    loc = repo.get_location(player.current_location_id)
+    
+    # Add Spider enemy
+    spider = Enemy(name="Giant Spider", description="Creepy", hp=1, max_hp=10, attack=1, xp_reward=20)
+    loc.add_enemy(spider)
+    repo.create_location(loc)
+    
+    msg, p, l = service.process_command(player.id, "attack Giant Spider")
+    assert "Giant Spider collapses and dies" in msg
+    assert len(l.items) > 0 or "dropped" in msg
+
+def test_skill_kill_loot_drop():
+    repo = InMemoryGameRepository()
+    service = GameService(repo)
+    player, _ = service.create_new_player("Mage")
+    player.stats.character_class = "mage"
+    player.stats.mp = 50
+    player.stats.intelligence = 20
+    player.skills = ["Fireball"]
+    repo.save_player(player)
+    
+    loc = repo.get_location(player.current_location_id)
+    wolf = Enemy(name="Gray Wolf", description="Feral", hp=1, max_hp=15, attack=2, xp_reward=25)
+    loc.add_enemy(wolf)
+    repo.create_location(loc)
+    
+    msg, p, l = service.process_command(player.id, "skill Fireball Gray Wolf")
+    assert "obliterated by your skill" in msg
+    assert len(l.items) > 0 or "dropped" in msg
+
 if __name__ == "__main__":
     test_combat_flow()
     test_player_death()
+    test_thematic_enemy_loot_drop()
+    test_skill_kill_loot_drop()

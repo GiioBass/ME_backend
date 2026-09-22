@@ -79,6 +79,7 @@ class PlayerDB(SQLModel, table=True):
     active_quests: Dict[str, Any] = Field(default={}, sa_type=JSON)
     completed_quests: List[str] = Field(default=[], sa_type=JSON)
     skills: List[str] = Field(default=[], sa_type=JSON)
+    skill_cooldowns: Dict[str, int] = Field(default={}, sa_type=JSON)
     active_dialogue: Optional[Dict[str, Any]] = Field(default=None, sa_type=JSON)
 
 # --- Location Related Models ---

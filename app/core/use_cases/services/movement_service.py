@@ -105,6 +105,16 @@ class MovementService(BaseGameService):
         
         if location.id.startswith("dng_"):
             radius = 1
+        else:
+            # Ensure full 360-degree radius is generated on the surface
+            if self.world_gen:
+                for nx in range(x - radius, x + radius + 1):
+                    for ny in range(y - radius, y + radius + 1):
+                        loc_id = f"loc_{nx}_{ny}_0"
+                        if not self.repo.get_location(loc_id):
+                            new_loc = self.world_gen.generate_single_location(nx, ny, 0)
+                            self.repo.create_location(new_loc)
+
         nearby = self.repo.get_locations_in_radius(x, y, z, radius)
         
         if not nearby:
@@ -113,25 +123,41 @@ class MovementService(BaseGameService):
         scouted_data = []
         found_landmarks = []
         for loc in nearby:
-            nx, ny = loc.coordinates.x, loc.coordinates.y
+            if not loc.coordinates:
+                continue
+            nx, ny, nz = loc.coordinates.x, loc.coordinates.y, loc.coordinates.z
             dx = nx - x
             dy = ny - y
             
-            dist = max(abs(dx), abs(dy))
-            report_name = loc.name
-            
-            if z == 0 and "down" in loc.exits:
-                report_name = "Cave Entrance"
-            elif z < 0 and "up" in loc.exits:
-                report_name = "Surface Exit"
-                
-            generic_biomes = ["Forest", "Desert", "Wilderness", "Deep Cavern", "Mountain", "Plains", "Forest Area", "Desert Area"]
-            is_generic_biome = any(loc.name.startswith(b) for b in generic_biomes)
-            if is_generic_biome and re.search(r"\s-?\d+,-?\d+$", loc.name):
+            # Skip current player location
+            if dx == 0 and dy == 0:
                 continue
 
-            if dist == 0 and report_name == loc.name:
-                continue
+            dist = max(abs(dx), abs(dy))
+            report_name = loc.name
+            poi_type = "landmark"
+            
+            # 1. Detect Cave Entrances and Surface Exits
+            if z == 0 and "down" in loc.exits:
+                report_name = "Cave Entrance"
+                poi_type = "cave"
+            elif z < 0 and "up" in loc.exits:
+                report_name = "Surface Exit"
+                poi_type = "cave"
+            elif any("water" in str(inter).lower() for inter in getattr(loc, 'interactables', [])) or any(loc.name.startswith(w) for w in ["River", "Stream", "Small Lake", "Lake", "Old Well", "Well", "Oasis", "Spring"]):
+                clean_name = re.sub(r"\s+(at\s+)?-?\d+\s*,\s*-?\d+$", "", loc.name).strip()
+                report_name = f"{clean_name} (Water Source)"
+                poi_type = "water"
+            elif "oakfield" in loc.name.lower() or "village" in loc.name.lower() or "town" in loc.name.lower() or "hub" in loc.name.lower():
+                poi_type = "town"
+            else:
+                # Filter out generic empty wilderness tiles with coordinates in name
+                generic_biomes = ["forest", "desert", "wilderness", "deep cavern", "cavern", "mountain", "plains"]
+                is_generic = any(loc.name.lower().startswith(b) for b in generic_biomes)
+                has_coords = bool(re.search(r"(-?\d+\s*,\s*-?\d+)", loc.name))
+                if is_generic and (has_coords or not loc.exits or not any(k in ["up", "down"] for k in loc.exits)):
+                    continue
+                poi_type = "poi"
                 
             dir_str = ""
             if dy > 0:
@@ -149,7 +175,13 @@ class MovementService(BaseGameService):
             scouted_data.append({
                 "name": report_name,
                 "distance": dist,
-                "direction": dir_str if dist > 0 else "Here"
+                "direction": dir_str if dist > 0 else "Here",
+                "dx": dx,
+                "dy": dy,
+                "x": nx,
+                "y": ny,
+                "z": nz,
+                "type": poi_type
             })
             
         if not found_landmarks:

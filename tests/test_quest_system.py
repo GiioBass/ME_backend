@@ -26,8 +26,8 @@ def test_quest_lifecycle_and_turnin():
         id=str(uuid.uuid4()),
         name="Cave Spider",
         description="A skittering cave spider",
-        hp=5,
-        max_hp=5,
+        hp=3,
+        max_hp=3,
         attack=1,
         xp_reward=10
     )
@@ -38,8 +38,8 @@ def test_quest_lifecycle_and_turnin():
     assert "(1/3)" in msg
 
     # Kill spider 2 and 3
-    spider2 = Enemy(id=str(uuid.uuid4()), name="Cave Spider", description="sp2", hp=5, max_hp=5, attack=1, xp_reward=10)
-    spider3 = Enemy(id=str(uuid.uuid4()), name="Cave Spider", description="sp3", hp=5, max_hp=5, attack=1, xp_reward=10)
+    spider2 = Enemy(id=str(uuid.uuid4()), name="Cave Spider", description="sp2", hp=3, max_hp=3, attack=1, xp_reward=10)
+    spider3 = Enemy(id=str(uuid.uuid4()), name="Cave Spider", description="sp3", hp=3, max_hp=3, attack=1, xp_reward=10)
     location.enemies.extend([spider2, spider3])
     
     service.attack_enemy(player.id, "Cave Spider")

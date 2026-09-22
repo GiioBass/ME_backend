@@ -24,6 +24,26 @@ def test_npc_dialogue_flow():
     msg, p, _ = service.process_command(player.id, "dialogue 2")
     assert p.active_dialogue is None
 
+def test_explicit_end_dialogue():
+    repo = InMemoryGameRepository()
+    service = GameService(repo)
+    player, _ = service.create_new_player("Talker")
+
+    # Start dialogue
+    service.process_command(player.id, "talk Village Elder")
+    p = repo.get_player(player.id)
+    assert p.active_dialogue is not None
+
+    # End dialogue via command 'leave'
+    msg, p, _ = service.process_command(player.id, "leave")
+    assert "Farewell" in msg or "ended" in msg
+    assert p.active_dialogue is None
+
+    # Start dialogue again and end via end_dialogue
+    service.process_command(player.id, "talk Village Elder")
+    msg, p, _ = service.end_dialogue(player.id)
+    assert p.active_dialogue is None
+
 def test_merchant_trade_system():
     repo = InMemoryGameRepository()
     service = GameService(repo)

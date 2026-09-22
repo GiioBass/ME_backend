@@ -50,14 +50,19 @@ class SkillService(BaseGameService):
         class_name_clean = class_name.lower().strip()
         
         valid_classes = {
+            "adventurer": CharacterClass.ADVENTURER,
             "fighter": CharacterClass.FIGHTER,
             "marksman": CharacterClass.MARKSMAN,
             "mage": CharacterClass.MAGE
         }
         if class_name_clean not in valid_classes:
-            return f"Invalid class '{class_name}'. Choose from: Fighter, Marksman, Mage.", player, location
+            return f"Invalid class '{class_name}'. Choose from: Fighter, Marksman, Mage, Adventurer.", player, location
 
         chosen = valid_classes[class_name_clean]
+        current_class = getattr(player.stats, 'character_class', 'adventurer')
+        if current_class and current_class != "adventurer" and current_class != chosen.value:
+            return f"Your class is permanently set to {current_class.capitalize()}. Classes cannot be changed after character creation.", player, location
+
         player.stats.character_class = chosen.value
 
         # Grant class starter skills
@@ -112,8 +117,21 @@ class SkillService(BaseGameService):
         if not skill:
             return f"Skill '{skill_name}' not found.", player, location
 
+        # Auto-grant skill if valid for player class and level
+        cls_val = getattr(player.stats, 'character_class', 'adventurer')
+        is_class_skill = (skill.character_class.value == cls_val or skill.character_class.value == 'adventurer')
+        if is_class_skill and player.stats.level >= skill.required_level:
+            if skill.name not in player.skills and skill.id not in player.skills:
+                player.skills.append(skill.name)
+                self.repo.save_player(player)
+
         if skill.name not in player.skills and skill.id not in player.skills:
             return f"You have not unlocked the skill '{skill.name}'.", player, location
+
+        # Check skill cooldown / alternation requirement
+        skill_cd = player.skill_cooldowns.get(skill.name.lower(), 0) or player.skill_cooldowns.get(skill.id.lower(), 0)
+        if skill_cd > 0:
+            return f"Skill '{skill.name}' is on cooldown! Strike with a basic attack ('attack [target]') to regain your tactical stance and recharge.", player, location
 
         # Check MP cost
         if skill.mp_cost > 0 and player.stats.mp < skill.mp_cost:
@@ -136,23 +154,37 @@ class SkillService(BaseGameService):
 
         # Deduct costs
         if skill.mp_cost > 0:
-            player.stats.mp -= skill.mp_cost
+            player.stats.mp = max(0, player.stats.mp - skill.mp_cost)
         if skill.energy_cost > 0:
             player.take_damage(skill.energy_cost)
 
+        # Set cooldown for free skill or skill with cooldown_turns
+        if skill.mp_cost == 0 or getattr(skill, "cooldown_turns", 0) > 0:
+            cd_val = getattr(skill, "cooldown_turns", 0) if getattr(skill, "cooldown_turns", 0) > 0 else 1
+            player.skill_cooldowns[skill.name.lower()] = cd_val
+            player.skill_cooldowns[skill.id.lower()] = cd_val
+
         combat_log = f"You cast [{skill.name}]!"
+        if skill.mp_cost > 0:
+            combat_log += f" (-{skill.mp_cost} MP)"
 
         # Apply damage to enemy
         if enemy:
-            base_power = player.stats.strength
             if skill.character_class == CharacterClass.MAGE:
-                base_power = player.stats.intelligence
+                base_attr = player.stats.intelligence
+            else:
+                base_attr = player.stats.strength
 
             weapon = player.equipment.get("weapon")
-            if weapon and "strength" in weapon.stat_bonuses:
-                base_power += weapon.stat_bonuses["strength"]
+            weapon_bonus = 0
+            if weapon:
+                if skill.character_class == CharacterClass.MAGE and "intelligence" in weapon.stat_bonuses:
+                    weapon_bonus = weapon.stat_bonuses["intelligence"]
+                elif "strength" in weapon.stat_bonuses:
+                    weapon_bonus = weapon.stat_bonuses["strength"]
 
-            dmg = int(base_power * skill.damage_multiplier) + skill.bonus_damage
+            base_power = max(1, (base_attr // 2)) + weapon_bonus
+            dmg = max(1, int(base_power * skill.damage_multiplier))
             actual_dmg = enemy.take_damage(dmg)
             combat_log += f" Dealt {actual_dmg} damage to {enemy.name}! (Enemy HP: {enemy.hp}/{enemy.max_hp})"
 
@@ -167,24 +199,36 @@ class SkillService(BaseGameService):
                     q_log = self.quest_service.update_kill_progress(player, enemy.name)
                     combat_log += q_log
 
+                # Thematic Monster Drops
+                drop_log = self._generate_enemy_loot(enemy, location)
+                combat_log += drop_log
+
                 self.repo.save_player(player)
                 self.repo.create_location(location)
                 time_msg = self._advance_time_and_events(world_time, player, settings.TIME_COST_ATTACK)
                 return combat_log + time_msg, player, location
 
-        # Apply self buffs/shields
+        # Apply self buffs/shields/heals
         if skill.effect_type == "shield":
             player.stats.hp = min(player.stats.max_hp, player.stats.hp + skill.effect_value)
             combat_log += f" Absorbed energy, granting +{skill.effect_value} temporary vitality!"
+        elif skill.effect_type == "heal":
+            old_hp = player.stats.hp
+            player.stats.hp = min(player.stats.max_hp, player.stats.hp + skill.effect_value)
+            healed = player.stats.hp - old_hp
+            combat_log += f" Restored +{healed} HP! ({player.stats.hp}/{player.stats.max_hp} HP)"
 
-        # Enemy retaliation if alive
+        # Enemy retaliation if alive (unless stunned by skill)
         if enemy and not enemy.is_dead:
-            enemy_dmg = max(1, enemy.attack)
-            armor = player.equipment.get("armor")
-            mitigation = armor.stat_bonuses.get("defense", 0) if armor else 0
-            final_dmg = max(1, enemy_dmg - mitigation)
-            player.take_damage(final_dmg)
-            combat_log += f"\n{enemy.name} retaliates for {final_dmg} damage! (Your HP: {player.stats.hp}/{player.stats.max_hp})"
+            if skill.effect_type == "stun":
+                combat_log += f"\n{enemy.name} is stunned by the impact and cannot retaliate!"
+            else:
+                enemy_dmg = max(1, enemy.attack)
+                armor = player.equipment.get("armor")
+                mitigation = armor.stat_bonuses.get("defense", 0) if armor else 0
+                final_dmg = max(1, enemy_dmg - mitigation)
+                player.take_damage(final_dmg)
+                combat_log += f"\n{enemy.name} retaliates for {final_dmg} damage! (Your HP: {player.stats.hp}/{player.stats.max_hp})"
 
         self.repo.save_player(player)
         self.repo.create_location(location)

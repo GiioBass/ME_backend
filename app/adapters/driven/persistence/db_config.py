@@ -9,6 +9,14 @@ engine = create_engine(settings.DATABASE_URL, connect_args=connect_args)
 def create_db_and_tables():
     from app.adapters.driven.persistence import sql_models # noqa: F401
     SQLModel.metadata.create_all(engine)
+    # Ensure newly added columns exist in SQLite tables
+    from sqlalchemy import text
+    with engine.connect() as conn:
+        try:
+            conn.execute(text("ALTER TABLE playerdb ADD COLUMN skill_cooldowns JSON DEFAULT '{}'"))
+            conn.commit()
+        except Exception:
+            pass
 
 def get_session():
     with Session(engine) as session:

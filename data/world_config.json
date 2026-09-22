@@ -22,6 +22,78 @@
     "pois": [
         {
             "coords": {
+                "x": 0,
+                "y": 3,
+                "z": 0
+            },
+            "name": "Abandoned Iron Mine",
+            "description": "An old stone mine entrance carved into the northern mountainside. Dark tracks lead down into the abyss."
+        },
+        {
+            "coords": {
+                "x": 1,
+                "y": 4,
+                "z": 0
+            },
+            "name": "Ancient Ruins",
+            "description": "Crumbling pillars covered in glowing moss surround a cracked dais in the north."
+        },
+        {
+            "coords": {
+                "x": -1,
+                "y": 5,
+                "z": 0
+            },
+            "name": "Highland Watchtower",
+            "description": "A lonely stone watchtower overlooking the northern valleys and snowy peaks."
+        },
+        {
+            "coords": {
+                "x": 0,
+                "y": -3,
+                "z": 0
+            },
+            "name": "Sunken Desert Oasis",
+            "description": "A shimmering pool of emerald spring water surrounded by desert palm trees to the south."
+        },
+        {
+            "coords": {
+                "x": 2,
+                "y": -4,
+                "z": 0
+            },
+            "name": "Mercenary Desert Fort",
+            "description": "Heavily fortified desert tents and palisades pitched among the scorched dunes."
+        },
+        {
+            "coords": {
+                "x": -2,
+                "y": -3,
+                "z": 0
+            },
+            "name": "Scorpion Nest",
+            "description": "A treacherous cluster of hollow sandstone rocks buzzing with venomous scorpions."
+        },
+        {
+            "coords": {
+                "x": 0,
+                "y": -5,
+                "z": 0
+            },
+            "name": "Forgotten Sunken Crypt",
+            "description": "An ancient stone crypt half-swallowed by the southern desert sands."
+        },
+        {
+            "coords": {
+                "x": 3,
+                "y": 0,
+                "z": 0
+            },
+            "name": "Whispering River",
+            "description": "A rushing freshwater river winding through the eastern plains with an old fisherman's pier."
+        },
+        {
+            "coords": {
                 "x": 2,
                 "y": 2,
                 "z": 0
@@ -31,34 +103,81 @@
         },
         {
             "coords": {
-                "x": 1,
-                "y": 4,
-                "z": 0
-            },
-            "name": "Ancient Ruins",
-            "description": "Crumbling pillars covered in glowing moss surround a cracked dais."
-        },
-        {
-            "coords": {
                 "x": 4,
                 "y": 4,
                 "z": 0
             },
             "name": "Goblin's Clearing",
-            "description": "A suspiciously cozy clearing in the forest. Something feels... off."
+            "description": "A suspiciously cozy clearing in the northeast forest. Something feels... off."
+        },
+        {
+            "coords": {
+                "x": 4,
+                "y": -1,
+                "z": 0
+            },
+            "name": "Bandit Stronghold",
+            "description": "A wooden fortress occupied by ruthless highwaymen overlooking the eastern road."
+        },
+        {
+            "coords": {
+                "x": -3,
+                "y": 0,
+                "z": 0
+            },
+            "name": "Mystic Moonlit Shrine",
+            "description": "An ancient glowing altar humming with dormant arcane power in the western forest."
+        },
+        {
+            "coords": {
+                "x": -2,
+                "y": 3,
+                "z": 0
+            },
+            "name": "Witch's Hollow",
+            "description": "A foggy northwestern grove where rare blue and red medicinal herbs grow in abundance."
+        },
+        {
+            "coords": {
+                "x": -4,
+                "y": 2,
+                "z": 0
+            },
+            "name": "Overgrown Crypt",
+            "description": "A moss-covered stone mausoleum exhaling a chilly, unnatural draft."
+        },
+        {
+            "coords": {
+                "x": -3,
+                "y": -2,
+                "z": 0
+            },
+            "name": "Crystal Spring",
+            "description": "A secluded spring bubbling with pure, refreshing mineral water to the southwest."
+        },
+        {
+            "coords": {
+                "x": -4,
+                "y": -4,
+                "z": 0
+            },
+            "name": "Hermit's Shelter",
+            "description": "A hidden cavern shelter tucked behind thorny desert brambles."
         }
     ],
     "water_sources": {
-        "chance": 0.15,
+        "chance": 0.06,
         "types": [
             "River",
             "Stream",
             "Small Lake",
-            "Old Well"
+            "Old Well",
+            "Crystal Spring",
+            "Oasis"
         ]
     },
     "cave_entrance": {
-        "chance": 0.1,
+        "chance": 0.08,
         "description_suffix": " You see a dark opening leading down."
     }
 }

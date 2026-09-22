@@ -108,6 +108,13 @@ class DialogueService(BaseGameService):
             self.repo.save_player(player)
             return "The conversation ended.", player, location
 
+        # Handle explicit exit keywords
+        clean_input = choice_input.strip().lower()
+        if clean_input in ["leave", "exit", "bye", "goodbye", "end", "close", "cancel", "0"]:
+            player.active_dialogue = None
+            self.repo.save_player(player)
+            return f"[{npc.name}] Farewell.", player, location
+
         # Match choice by index (1, 2, 3...) or partial text
         selected_choice: Optional[DialogueChoice] = None
         if choice_input.strip().isdigit():
@@ -170,6 +177,16 @@ class DialogueService(BaseGameService):
             response_lines.append(action_msg)
 
         return "\n".join(response_lines), player, location
+
+    def end_dialogue(self, player_id: str) -> Tuple[str, Player, Location]:
+        player, location = self._get_player_and_location(player_id)
+        npc_name = "the conversation"
+        if player.active_dialogue:
+            npc_name = player.active_dialogue.get("npc_name", "the conversation")
+            player.active_dialogue = None
+            self.repo.save_player(player)
+            return f"[{npc_name}] Farewell.", player, location
+        return "You are not in a conversation.", player, location
 
     def _render_shop(self, npc: NPC) -> str:
         if not npc.shop_inventory:

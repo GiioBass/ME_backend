@@ -97,6 +97,54 @@
         "weight": 0.3
     },
     {
+        "id": "base_wool",
+        "name": "Wool",
+        "description": "Soft fleece sheared from sheep or wild beasts, perfect for weaving cloth.",
+        "item_type": "material",
+        "value": 3,
+        "weight": 0.3
+    },
+    {
+        "id": "base_spider_silk",
+        "name": "Spider Silk",
+        "description": "Strong, sticky thread spun by giant spiders. Used for tough fabric and bowstrings.",
+        "item_type": "material",
+        "value": 6,
+        "weight": 0.1
+    },
+    {
+        "id": "base_wolf_pelt",
+        "name": "Wolf Pelt",
+        "description": "Thick fur hide from a timber wolf, used for warm garments and leathercraft.",
+        "item_type": "material",
+        "value": 8,
+        "weight": 1.2
+    },
+    {
+        "id": "base_leather",
+        "name": "Leather",
+        "description": "Cured and tanned animal hide for crafting sturdy armor and pouches.",
+        "item_type": "material",
+        "value": 6,
+        "weight": 0.8
+    },
+    {
+        "id": "base_bone",
+        "name": "Bone",
+        "description": "A sturdy animal bone, useful for crude tools, handles, and talismans.",
+        "item_type": "material",
+        "value": 2,
+        "weight": 0.5
+    },
+    {
+        "id": "base_poison_sac",
+        "name": "Poison Sac",
+        "description": "A venom gland extracted from arachnids or serpents.",
+        "item_type": "material",
+        "value": 10,
+        "weight": 0.2
+    },
+    {
         "id": "base_abyssal_core",
         "name": "Abyssal Core",
         "description": "A glowing dark core. Very valuable.",

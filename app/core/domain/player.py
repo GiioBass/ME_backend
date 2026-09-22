@@ -30,6 +30,7 @@ class Player(BaseModel):
     active_quests: Dict[str, dict] = Field(default_factory=dict) # quest_id -> Quest dict
     completed_quests: List[str] = Field(default_factory=list) # quest_ids
     skills: List[str] = Field(default_factory=list) # skill_ids or names
+    skill_cooldowns: Dict[str, int] = Field(default_factory=dict) # skill_name -> remaining turns
     active_dialogue: Optional[Dict[str, Any]] = None # {"npc_id": str, "npc_name": str, "node_id": str}
     
     @property
@@ -96,12 +97,14 @@ class Player(BaseModel):
 
     def gain_xp(self, amount: int):
         self.stats.xp += amount
-        # Simple level up logic
+        # Level up logic: increase max capacity without resetting battle damage
         if self.stats.xp >= self.stats.level * 100:
             self.stats.level += 1
             self.stats.xp = 0
             self.stats.max_hp += 10
-            self.stats.hp = self.stats.max_hp
+            self.stats.hp = min(self.stats.max_hp, self.stats.hp + 10)
+            self.stats.max_mp += 10
+            self.stats.mp = min(self.stats.max_mp, self.stats.mp + 10)
             return True
         return False
 

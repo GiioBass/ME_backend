@@ -109,6 +109,7 @@ class GameService:
             # NPCs, Dialogue & Economy
             "talk": self.talk_to_npc, "speak": self.talk_to_npc, "greet": self.talk_to_npc,
             "dialogue": self.choose_dialogue_option, "option": self.choose_dialogue_option, "say": self.choose_dialogue_option, "1": lambda p, a: self.choose_dialogue_option(p, "1"), "2": lambda p, a: self.choose_dialogue_option(p, "2"), "3": lambda p, a: self.choose_dialogue_option(p, "3"), "4": lambda p, a: self.choose_dialogue_option(p, "4"),
+            "leave": lambda p, a: self.end_dialogue(p), "bye": lambda p, a: self.end_dialogue(p), "end_dialogue": lambda p, a: self.end_dialogue(p), "exit_dialogue": lambda p, a: self.end_dialogue(p),
             "buy": self.buy_item, "purchase": self.buy_item,
             "sell": self.sell_item,
             "shop": self._cmd_shop,
@@ -347,6 +348,9 @@ class GameService:
 
     def choose_dialogue_option(self, player_id: str, choice_input: str) -> Tuple[str, Player, Location]:
         return self.dialogue_service.choose_dialogue_option(player_id, choice_input)
+
+    def end_dialogue(self, player_id: str) -> Tuple[str, Player, Location]:
+        return self.dialogue_service.end_dialogue(player_id)
 
     def buy_item(self, player_id: str, item_name: str) -> Tuple[str, Player, Location]:
         return self.dialogue_service.buy_item(player_id, item_name)
