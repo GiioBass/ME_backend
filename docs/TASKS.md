@@ -111,6 +111,18 @@ Esta lista detalla las tareas pendientes para evolucionar el prototipo actual ha
     - [x] Prevención de crashes por datos nulos en el radar.
     - [x] Botón contextual "Drink from Source" en el panel lateral.
 
-## 7. Multijugador (Largo Plazo)
-- [ ] Websockets para chat y eventos en tiempo real.
-- [ ] Sistema de Party/Grupos.
+## 7. Sistema Multijugador (MUD / Realtime) *(Ver especificación completa en [MULTIPLAYER.md](file:///var/www/html/ME_backend/docs/MULTIPLAYER.md))*
+- [ ] **Fase 1: Autenticación, Sesiones y WebSockets Base**
+    - [ ] Sistema de Registro/Login con cuentas de usuario y tokens de sesión.
+    - [ ] Servidor WebSocket en FastAPI con `ConnectionManager`.
+    - [ ] Conexión, desconexión y latidos (heartbeats).
+- [ ] **Fase 2: Presencia de Jugadores y Sistema de Chat**
+    - [ ] Detección y notificación en tiempo real de jugadores en la misma casilla (`Location`).
+    - [ ] Canales de Chat: Local (`say`), Global (`shout`), Privado (`whisper`).
+    - [ ] Frontend: Hook `useMultiplayerSocket`, panel de chat y lista de jugadores en la zona.
+- [ ] **Fase 3: Acciones Compartidas y Concurrencia**
+    - [ ] Sincronización en vivo de botín en el suelo (`drop`/`take`) con control de concurrencia.
+    - [ ] Sistema de Comercio / Intercambio seguro entre jugadores (`trade`).
+- [ ] **Fase 4: Combate Cooperativo y Sistema de Grupos**
+    - [ ] Daño compartido a monstruos y jefes con cálculo cooperativo de XP y botín.
+    - [ ] Sistema de Grupos (`Party`) con chat dedicado y barras de estado del equipo.
