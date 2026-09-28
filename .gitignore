@@ -153,4 +153,13 @@ cython_debug/
 *.swp
 *.swo
 .DS_Store
+
+# Databases & Runtime Logs
+*.db
+*.sqlite3
 database.db
+*.log
+uvicorn.*
+uvicorn.std*
+backend.log
+
