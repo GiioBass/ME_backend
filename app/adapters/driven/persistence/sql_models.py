@@ -81,6 +81,8 @@ class PlayerDB(SQLModel, table=True):
     skills: List[str] = Field(default=[], sa_type=JSON)
     skill_cooldowns: Dict[str, int] = Field(default={}, sa_type=JSON)
     active_dialogue: Optional[Dict[str, Any]] = Field(default=None, sa_type=JSON)
+    password_hash: Optional[str] = Field(default=None, nullable=True)
+    salt: Optional[str] = Field(default=None, nullable=True)
 
 # --- Location Related Models ---
 

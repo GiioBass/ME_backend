@@ -3,8 +3,18 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from app.core.use_cases.game_service import GameService
 from app.ports.repositories import GameRepository
+from app.core.services.auth_service import auth_service
 
 # DTOs
+class RegisterRequest(BaseModel):
+    name: str
+    password: Optional[str] = None
+    character_class: Optional[str] = "adventurer"
+
+class AuthLoginRequest(BaseModel):
+    name: str
+    password: Optional[str] = None
+
 class CommandRequest(BaseModel):
     player_id: str
     command: str
@@ -79,6 +89,7 @@ class GameResponse(BaseModel):
     time: dict
     available_actions: list[str] = []
     scouted_locations: list | None = None
+    token: Optional[str] = None
 
 def get_game_service(repo: GameRepository) -> GameService:
     return GameService(repo)
@@ -212,6 +223,13 @@ def execute_game_action(service, func_name, *args):
                 location = service.world_gen.generate_start_location()
             msg += "\n\n*** YOU DIED ***\nYou succumbed to the elements and perished. You wake up at the start."
             
+        # Sync location with ConnectionManager if moved
+        try:
+            from app.adapters.driving.websocket.connection_manager import manager
+            manager.broadcast_sync(manager.update_player_location(player.id, location.id))
+        except Exception:
+            pass
+
         world_time = service.repo.get_world_time()
         return format_response(msg, player, location, world_time, scouted)
     except ValueError as e:
@@ -382,9 +400,18 @@ def get_available_actions(player: dict, location: dict, world_time: dict) -> lis
 
     return list(dict.fromkeys(actions))
 
-def format_response(msg: str, player: dict, location: dict, world_time: dict, scouted: list = None) -> dict:
+def format_response(msg: str, player: dict, location: dict, world_time: dict, scouted: list = None, token: Optional[str] = None) -> dict:
     serialized_player = serialize_player(player)
     
+    loc_id = getattr(location, "id", None) if hasattr(location, "id") else (location.get("id") if isinstance(location, dict) else None)
+    present = []
+    if loc_id:
+        try:
+            from app.adapters.driving.websocket.connection_manager import manager
+            present = manager.get_room_players(loc_id)
+        except Exception:
+            pass
+
     if hasattr(location, "model_dump"):
         serialized_location = {
             "id": getattr(location, "id", None),
@@ -396,11 +423,13 @@ def format_response(msg: str, player: dict, location: dict, world_time: dict, sc
             "enemies": [serialize_enemy(e) for e in location.enemies],
             "interactables": list(getattr(location, 'interactables', [])),
             "coordinates": location.coordinates.model_dump() if location.coordinates else None,
+            "present_players": present
         }
     else:
         serialized_location = dict(location)
         if "interactables" not in serialized_location:
             serialized_location["interactables"] = []
+        serialized_location["present_players"] = present
         
     serialized_time = serialize_time(world_time)
     actions = get_available_actions(serialized_player, serialized_location, serialized_time)
@@ -413,19 +442,72 @@ def format_response(msg: str, player: dict, location: dict, world_time: dict, sc
         "player": serialized_player,
         "location": serialized_location,
         "time": serialized_time,
-        "available_actions": actions
+        "available_actions": actions,
+        "token": token
     }
     if scouted is not None:
         resp["scouted_locations"] = scouted
     return resp
 
+@router.post("/auth/register", response_model=GameResponse)
+def auth_register(req: RegisterRequest):
+    service = GameService(_repo)
+    try:
+        existing = _repo.get_player_by_name(req.name)
+        if existing:
+            raise ValueError(f"Player name '{req.name}' is already registered.")
+
+        player, location = service.create_new_player(req.name, req.character_class)
+        
+        if req.password:
+            pwd_hash, salt = auth_service.hash_password(req.password)
+            _repo.save_player_credentials(player.id, pwd_hash, salt)
+
+        token = auth_service.create_token(player.id, player.name)
+        world_time = _repo.get_world_time()
+        return format_response(f"Account registered successfully. Welcome, {player.name}!", player, location, world_time, token=token)
+    except ValueError as e:
+        raise_game_error(e)
+
+@router.post("/auth/login", response_model=GameResponse)
+def auth_login(req: AuthLoginRequest):
+    service = GameService(_repo)
+    try:
+        account = _repo.get_player_account(req.name)
+        if not account:
+            raise ValueError(f"No adventurer found with name '{req.name}'.")
+
+        if account.get("password_hash") and account.get("salt"):
+            if not req.password:
+                raise ValueError("Password is required for this account.")
+            if not auth_service.verify_password(req.password, account["salt"], account["password_hash"]):
+                raise ValueError("Invalid credentials.")
+
+        player = _repo.get_player(account["id"])
+        if not player:
+            raise ValueError("Player profile not found.")
+
+        location = _repo.get_location(player.current_location_id)
+        if not location:
+            location = service.world_gen.generate_start_location()
+
+        token = auth_service.create_token(player.id, player.name)
+        world_time = _repo.get_world_time()
+        return format_response(f"Authentication verified. Welcome back, {player.name}.", player, location, world_time, token=token)
+    except ValueError as e:
+        raise_game_error(e)
+
 @router.post("/start", response_model=GameResponse)
-def start_game(name: str, character_class: Optional[str] = None):
+def start_game(name: str, character_class: Optional[str] = None, password: Optional[str] = None):
     service = GameService(_repo)
     try:
         player, location = service.create_new_player(name, character_class)
+        if password:
+            pwd_hash, salt = auth_service.hash_password(password)
+            _repo.save_player_credentials(player.id, pwd_hash, salt)
+        token = auth_service.create_token(player.id, player.name)
         world_time = _repo.get_world_time()
-        return format_response(f"Welcome, {name}! Your adventure begins.", player, location, world_time)
+        return format_response(f"Welcome, {name}! Your adventure begins.", player, location, world_time, token=token)
     except ValueError as e:
         raise_game_error(e)
 
@@ -437,8 +519,9 @@ def login_game(req: LoginRequest):
     service = GameService(_repo)
     try:
         player, location = service.login_player(req.name)
+        token = auth_service.create_token(player.id, player.name)
         world_time = _repo.get_world_time()
-        return format_response(f"Welcome back, {player.name}.", player, location, world_time)
+        return format_response(f"Welcome back, {player.name}.", player, location, world_time, token=token)
     except ValueError as e:
         raise_game_error(e)
 

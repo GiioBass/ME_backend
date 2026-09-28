@@ -82,3 +82,32 @@ class InMemoryGameRepository(GameRepository):
     def get_item_by_name(self, name_or_id):
         return self.items.get(name_or_id) or self.items.get(name_or_id.lower())
 
+    def get_player_account(self, name: str):
+        if not hasattr(self, "accounts"):
+            self.accounts = {}
+        return self.accounts.get(name.lower())
+
+    def save_player_credentials(self, player_id: str, password_hash: str, salt: str):
+        if not hasattr(self, "accounts"):
+            self.accounts = {}
+        player = self.get_player(player_id)
+        if player:
+            self.accounts[player.name.lower()] = {
+                "id": player.id,
+                "name": player.name,
+                "password_hash": password_hash,
+                "salt": salt
+            }
+
+    def get_players_in_location(self, location_id: str):
+        result = []
+        for p in self.players.values():
+            if p.current_location_id == location_id:
+                result.append({
+                    "id": p.id,
+                    "name": p.name,
+                    "character_class": p.stats.character_class if p.stats else "adventurer",
+                    "level": p.stats.level if p.stats else 1
+                })
+        return result
+

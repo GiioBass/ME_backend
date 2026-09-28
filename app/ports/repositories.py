@@ -70,3 +70,15 @@ class GameRepository(ABC):
     def get_item_by_name(self, name_or_id: str) -> Optional['Item']:
         pass
 
+    @abstractmethod
+    def get_player_account(self, name: str) -> Optional[Dict[str, Any]]:
+        pass
+
+    @abstractmethod
+    def save_player_credentials(self, player_id: str, password_hash: str, salt: str):
+        pass
+
+    @abstractmethod
+    def get_players_in_location(self, location_id: str) -> List[Dict[str, Any]]:
+        pass
+

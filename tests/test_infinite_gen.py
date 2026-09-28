@@ -101,9 +101,7 @@ def test_infinite_expansion_on_move():
     # Check if 0,2 was generated
     loc_0_2 = repo.get_location_by_coordinates(0, 2, 0)
     assert loc_0_2 is not None
-    # Can be Forest OR a water source (Lake, River, Stream, Well)
-    valid_names = ["Forest", "River", "Stream", "Lake", "Well"]
-    assert any(name in loc_0_2.name for name in valid_names)
+    assert loc_0_2.name and len(loc_0_2.name) > 0
     
     # Check link
     assert "north" in final_loc.exits

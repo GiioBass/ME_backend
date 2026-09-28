@@ -81,9 +81,49 @@ class SQLGameRepository(GameRepository):
                 return self.get_player(db_player.id)
             return None
 
+    def get_player_account(self, name: str) -> Optional[Dict[str, Any]]:
+        with Session(self.engine) as session:
+            db_player = session.exec(select(PlayerDB).where(PlayerDB.name == name)).first()
+            if not db_player:
+                return None
+            return {
+                "id": db_player.id,
+                "name": db_player.name,
+                "password_hash": db_player.password_hash,
+                "salt": db_player.salt,
+                "current_location_id": db_player.current_location_id
+            }
+
+    def save_player_credentials(self, player_id: str, password_hash: str, salt: str):
+        with Session(self.engine) as session:
+            db_player = session.get(PlayerDB, player_id)
+            if db_player:
+                db_player.password_hash = password_hash
+                db_player.salt = salt
+                session.add(db_player)
+                session.commit()
+
+    def get_players_in_location(self, location_id: str) -> List[Dict[str, Any]]:
+        with Session(self.engine) as session:
+            db_players = session.exec(select(PlayerDB).where(PlayerDB.current_location_id == location_id)).all()
+            result = []
+            for p in db_players:
+                db_stats = session.get(PlayerStatsDB, p.id)
+                result.append({
+                    "id": p.id,
+                    "name": p.name,
+                    "character_class": db_stats.character_class if db_stats else "adventurer",
+                    "level": db_stats.level if db_stats else 1
+                })
+            return result
+
     def save_player(self, player: Player) -> Player:
         with Session(self.engine) as session:
-            # 1. Save Player Core
+            # 1. Save Player Core while preserving existing credentials
+            existing_db = session.get(PlayerDB, player.id)
+            password_hash = existing_db.password_hash if existing_db else None
+            salt = existing_db.salt if existing_db else None
+
             db_player = PlayerDB(
                 id=player.id, 
                 name=player.name, 
@@ -92,7 +132,9 @@ class SQLGameRepository(GameRepository):
                 completed_quests=player.completed_quests,
                 skills=player.skills,
                 skill_cooldowns=player.skill_cooldowns,
-                active_dialogue=player.active_dialogue
+                active_dialogue=player.active_dialogue,
+                password_hash=password_hash,
+                salt=salt
             )
             session.merge(db_player)
             

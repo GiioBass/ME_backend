@@ -17,6 +17,16 @@ def create_db_and_tables():
             conn.commit()
         except Exception:
             pass
+        try:
+            conn.execute(text("ALTER TABLE playerdb ADD COLUMN password_hash VARCHAR DEFAULT NULL"))
+            conn.commit()
+        except Exception:
+            pass
+        try:
+            conn.execute(text("ALTER TABLE playerdb ADD COLUMN salt VARCHAR DEFAULT NULL"))
+            conn.commit()
+        except Exception:
+            pass
 
 def get_session():
     with Session(engine) as session:

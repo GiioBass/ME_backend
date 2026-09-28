@@ -112,14 +112,14 @@ Esta lista detalla las tareas pendientes para evolucionar el prototipo actual ha
     - [x] Botón contextual "Drink from Source" en el panel lateral.
 
 ## 7. Sistema Multijugador (MUD / Realtime) *(Ver especificación completa en [MULTIPLAYER.md](file:///var/www/html/ME_backend/docs/MULTIPLAYER.md))*
-- [ ] **Fase 1: Autenticación, Sesiones y WebSockets Base**
-    - [ ] Sistema de Registro/Login con cuentas de usuario y tokens de sesión.
-    - [ ] Servidor WebSocket en FastAPI con `ConnectionManager`.
-    - [ ] Conexión, desconexión y latidos (heartbeats).
-- [ ] **Fase 2: Presencia de Jugadores y Sistema de Chat**
-    - [ ] Detección y notificación en tiempo real de jugadores en la misma casilla (`Location`).
-    - [ ] Canales de Chat: Local (`say`), Global (`shout`), Privado (`whisper`).
-    - [ ] Frontend: Hook `useMultiplayerSocket`, panel de chat y lista de jugadores en la zona.
+- [x] **Fase 1: Autenticación, Sesiones y WebSockets Base**
+    - [x] Sistema de Registro/Login con cuentas de usuario y tokens de sesión.
+    - [x] Servidor WebSocket en FastAPI con `ConnectionManager`.
+    - [x] Conexión, desconexión y latidos (heartbeats).
+- [x] **Fase 2: Presencia de Jugadores y Sistema de Chat**
+    - [x] Detección y notificación en tiempo real de jugadores en la misma casilla (`Location`).
+    - [x] Canales de Chat: Local (`say`), Global (`shout`), Privado (`whisper`).
+    - [x] Frontend: Hook `useMultiplayerSocket`, panel de chat y lista de jugadores en la zona.
 - [ ] **Fase 3: Acciones Compartidas y Concurrencia**
     - [ ] Sincronización en vivo de botín en el suelo (`drop`/`take`) con control de concurrencia.
     - [ ] Sistema de Comercio / Intercambio seguro entre jugadores (`trade`).

@@ -2,6 +2,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite:///database.db"
+    SECRET_KEY: str = "mystic_explorers_secure_jwt_secret_key_change_in_production_2026"
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 10080 # 7 days
     
     # --- Game Mechanics ---
     # Time Costs (minutes)

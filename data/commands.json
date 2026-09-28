@@ -43,163 +43,247 @@
     },
     {
         "command": "look",
-        "description": "Observe your current surroundings.",
+        "description": "Observe your current surroundings, visible items, enemies, and nearby adventurers.",
         "usage": "look",
         "category": "general",
         "alias": "l"
     },
     {
         "command": "stats",
-        "description": "Check your character's current health and attributes.",
+        "description": "Check your character's current health, mana, stamina, hunger, thirst, and level attributes.",
         "usage": "stats",
         "category": "general",
-        "alias": null
+        "alias": "status"
     },
     {
         "command": "inventory",
-        "description": "List all items you are carrying.",
+        "description": "List all items you are carrying and their weight/slots.",
         "usage": "inventory",
         "category": "general",
         "alias": "i"
     },
     {
         "command": "time",
-        "description": "Check the current in-game time.",
+        "description": "Check the current in-game day/night cycle and world clock.",
         "usage": "time",
         "category": "general",
-        "alias": null
+        "alias": "clock"
+    },
+    {
+        "command": "scout",
+        "description": "Reveal the surrounding geography, points of interest, dungeons, and water sources.",
+        "usage": "scout",
+        "category": "general",
+        "alias": "map"
     },
     {
         "command": "help",
-        "description": "Show this list of available commands.",
+        "description": "Show the list of available commands and protocol documentation.",
         "usage": "help",
         "category": "general",
         "alias": null
     },
     {
         "command": "clear",
-        "description": "Wipe the terminal history.",
+        "description": "Wipe the terminal output buffer.",
         "usage": "clear",
         "category": "general",
         "alias": null
     },
     {
         "command": "take",
-        "description": "Pick up an item from the ground.",
+        "description": "Pick up an item from the current sector ground.",
         "usage": "take [item_name]",
         "category": "interaction",
         "alias": "get"
     },
     {
         "command": "drop",
-        "description": "Leave an item from your inventory on the ground.",
+        "description": "Leave an item from your inventory onto the ground.",
         "usage": "drop [item_name]",
         "category": "interaction",
-        "alias": null
+        "alias": "discard"
     },
     {
         "command": "consume",
-        "description": "Eat or drink a consumable item.",
+        "description": "Eat food or drink potions to restore health, stamina, hunger, or thirst.",
         "usage": "consume [item_name]",
         "category": "interaction",
         "alias": "use"
     },
     {
         "command": "fill",
-        "description": "Fill an empty flask from a water source.",
+        "description": "Fill an empty water flask from a natural water source (river, oasis, well).",
         "usage": "fill [flask_name]",
         "category": "interaction",
-        "alias": null
+        "alias": "refill"
     },
     {
         "command": "attack",
-        "description": "Engage an enemy in combat.",
+        "description": "Engage a hostile enemy in combat.",
         "usage": "attack [enemy_name]",
         "category": "interaction",
         "alias": "fight"
     },
     {
+        "command": "talk",
+        "description": "Initiate dialogue with an NPC in the current sector.",
+        "usage": "talk [npc_name]",
+        "category": "interaction",
+        "alias": "speak"
+    },
+    {
+        "command": "shop",
+        "description": "Inspect items for sale and buying prices from a vendor NPC.",
+        "usage": "shop",
+        "category": "interaction",
+        "alias": null
+    },
+    {
+        "command": "buy",
+        "description": "Purchase an item from the current merchant.",
+        "usage": "buy [item_name]",
+        "category": "interaction",
+        "alias": "purchase"
+    },
+    {
+        "command": "sell",
+        "description": "Sell an inventory item to the merchant for gold.",
+        "usage": "sell [item_name]",
+        "category": "interaction",
+        "alias": null
+    },
+    {
+        "command": "quests",
+        "description": "Review your active and completed quest journal.",
+        "usage": "quests",
+        "category": "interaction",
+        "alias": "journal"
+    },
+    {
+        "command": "turnin",
+        "description": "Deliver required items to an NPC to complete a quest.",
+        "usage": "turnin [quest_id]",
+        "category": "interaction",
+        "alias": "complete"
+    },
+    {
         "command": "equip",
-        "description": "Wear armor or wield a weapon.",
+        "description": "Wear armor, boots, helmet, or wield weapons.",
         "usage": "equip [item_name]",
         "category": "advanced",
         "alias": null
     },
     {
         "command": "unequip",
-        "description": "Remove an equipped item.",
+        "description": "Remove an equipped weapon or armor piece to inventory.",
         "usage": "unequip [slot_name]",
         "category": "advanced",
         "alias": null
     },
     {
         "command": "camp",
-        "description": "Mark your current location as a fast travel point.",
+        "description": "Establish a campsite waypoint at your current location for fast travel.",
         "usage": "camp [camp_name]",
         "category": "advanced",
         "alias": null
     },
     {
         "command": "travel",
-        "description": "Fast travel to a previously marked camp.",
+        "description": "Fast travel back to a previously established campsite.",
         "usage": "travel [camp_name]",
         "category": "advanced",
         "alias": null
     },
     {
         "command": "rest",
-        "description": "Take a long rest to recover HP. Costs hunger, thirst, and time.",
+        "description": "Rest at a campsite to fully recover HP and Stamina (advances time).",
         "usage": "rest",
         "category": "advanced",
         "alias": "sleep"
     },
     {
         "command": "chest",
-        "description": "Access the storage chest at your camp.",
+        "description": "Open your camp storage chest to view stored items.",
         "usage": "chest",
         "category": "advanced",
-        "alias": null
+        "alias": "storage"
     },
     {
         "command": "store",
-        "description": "Move an item from inventory to the camp chest.",
+        "description": "Store an item from your inventory into the camp chest.",
         "usage": "store [item_name]",
         "category": "advanced",
-        "alias": null
+        "alias": "stash"
     },
     {
         "command": "retrieve",
-        "description": "Take an item from the camp chest.",
+        "description": "Withdraw an item from the camp storage chest to inventory.",
         "usage": "retrieve [item_name]",
         "category": "advanced",
-        "alias": null
-    },
-    {
-        "command": "admin",
-        "description": "Execute administrative overrides.",
-        "usage": "admin [key] [subcommand]",
-        "category": "advanced",
-        "alias": "god"
+        "alias": "withdraw"
     },
     {
         "command": "craft",
-        "description": "Create a new item from ingredients in your inventory.",
+        "description": "Synthesize a new item using gathered materials from inventory.",
         "usage": "craft [recipe_name]",
         "category": "advanced",
-        "alias": null
+        "alias": "make"
     },
     {
         "command": "recipes",
-        "description": "View all available crafting recipes.",
+        "description": "List all discovered blueprints and crafting recipes.",
         "usage": "recipes",
         "category": "advanced",
-        "alias": null
+        "alias": "blueprints"
     },
     {
-        "command": "scout",
-        "description": "Reveal the surrounding geography and points of interest.",
-        "usage": "scout",
-        "category": "general",
-        "alias": "map"
+        "command": "class",
+        "description": "Specialize your adventurer into Warrior, Mage, Rogue, or Ranger.",
+        "usage": "class [class_name]",
+        "category": "advanced",
+        "alias": "choose_class"
+    },
+    {
+        "command": "skills",
+        "description": "List tactical class abilities, cooldowns, and stamina/mana costs.",
+        "usage": "skills",
+        "category": "advanced",
+        "alias": "abilities"
+    },
+    {
+        "command": "cast",
+        "description": "Trigger an active combat ability or spell against target hostile.",
+        "usage": "cast [skill_name] [target]",
+        "category": "advanced",
+        "alias": "skill"
+    },
+    {
+        "command": "party",
+        "description": "Manage cooperative group: /party invite <name>, /party accept, /party leave, /p <msg>.",
+        "usage": "party [invite|accept|leave|kick] [target]",
+        "category": "multiplayer",
+        "alias": "p"
+    },
+    {
+        "command": "whisper",
+        "description": "Send a direct private message to another online adventurer.",
+        "usage": "whisper [player_name] [message]",
+        "category": "multiplayer",
+        "alias": "w"
+    },
+    {
+        "command": "shout",
+        "description": "Broadcast a global message to all connected players across the realm.",
+        "usage": "shout [message]",
+        "category": "multiplayer",
+        "alias": "all"
+    },
+    {
+        "command": "admin",
+        "description": "Execute game master administrative overrides (god mode, spawn, teleport).",
+        "usage": "admin [key] [subcommand]",
+        "category": "advanced",
+        "alias": "god"
     }
 ]

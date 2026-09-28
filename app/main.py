@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.adapters.driving.api.routes import router as game_router
+from app.adapters.driving.websocket.ws_routes import ws_router
 from app.adapters.driven.persistence.db_config import create_db_and_tables
 from app.adapters.driven.persistence.sql_repository import SQLGameRepository
 from app.core.use_cases.data_loader import DataLoader
@@ -33,6 +34,7 @@ app.add_middleware(
 )
 
 app.include_router(game_router, prefix="/api/v1")
+app.include_router(ws_router)
 
 @app.get("/")
 def health_check():

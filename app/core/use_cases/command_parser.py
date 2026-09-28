@@ -33,6 +33,49 @@ class CommandParser:
             return self._handle_attack(args, player, location, save_player_callback, save_location_callback)
         elif action in ["fill", "refill"]:
             return self._handle_fill(args, player, location, save_player_callback)
+        elif action in ["say", "speak"]:
+            if len(args) < 2:
+                return CommandResult("Say what?", player, location)
+            msg_text = " ".join(command_text.split()[1:])
+            from app.adapters.driving.websocket.connection_manager import manager
+            manager.broadcast_sync(manager.broadcast_to_room(
+                location.id,
+                {
+                    "event": "CHAT_MESSAGE",
+                    "subtype": "SAY",
+                    "sender_id": player.id,
+                    "sender_name": player.name,
+                    "text": msg_text,
+                    "message": f"{player.name} says: \"{msg_text}\""
+                },
+                exclude_player_id=player.id
+            ))
+            return CommandResult(f"You say: \"{msg_text}\"", player, location)
+        elif action in ["shout", "yell"]:
+            if len(args) < 2:
+                return CommandResult("Shout what?", player, location)
+            msg_text = " ".join(command_text.split()[1:])
+            from app.adapters.driving.websocket.connection_manager import manager
+            manager.broadcast_sync(manager.broadcast_global(
+                {
+                    "event": "CHAT_MESSAGE",
+                    "subtype": "SHOUT",
+                    "sender_id": player.id,
+                    "sender_name": player.name,
+                    "text": msg_text,
+                    "message": f"[GLOBAL] {player.name} shouts: \"{msg_text}\""
+                },
+                exclude_player_id=player.id
+            ))
+            return CommandResult(f"You shout to the realm: \"{msg_text}\"", player, location)
+        elif action in ["whisper", "tell", "pm", "msg"]:
+            if len(args) < 3:
+                return CommandResult("Usage: whisper <player_name> <message>", player, location)
+            target_name = args[1]
+            msg_text = " ".join(command_text.split()[2:])
+            from app.adapters.driving.websocket.connection_manager import manager
+            manager.broadcast_sync(manager.send_whisper(player.id, target_name, msg_text))
+            return CommandResult(f"You whisper to {target_name}: \"{msg_text}\"", player, location)
         elif action in ["time", "clock", "date"]:
             return CommandResult(f"It is {world_time.get_time_string()}.", player, location)
         
@@ -53,6 +96,16 @@ class CommandParser:
         if location.enemies:
             enemy_names = [f"{e.name} (HP:{e.hp})" for e in location.enemies]
             base_desc += f"\nEnemies here: {', '.join(enemy_names)}"
+
+        # Append online adventurers
+        try:
+            from app.adapters.driving.websocket.connection_manager import manager
+            room_players = manager.get_room_players(location.id)
+            other_players = [p["name"] for p in room_players if p["id"] != player.id]
+            if other_players:
+                base_desc += f"\nAdventurers here: {', '.join(other_players)}"
+        except Exception:
+            pass
             
         return CommandResult(base_desc, player, location)
 
