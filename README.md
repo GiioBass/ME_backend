@@ -1,65 +1,97 @@
-# Text RPG Backend
+# Mystic Explorers - Backend (Text RPG)
 
-A text-based RPG backend built with Python, FastAPI, and Hexagonal Architecture.
+Servidor backend para Mystic Explorers construido con Python 3.10+, FastAPI y Arquitectura Hexagonal.
 
-## Setup
+## Requisitos Previos
 
-1.  **Create Virtual Environment**:
-    ```bash
-    python3 -m venv venv
-    source venv/bin/activate
-    ```
+- Python 3.10 o superior (probado con Python 3.14 en Fedora).
+- SQLite3 (incluido con Python por defecto).
 
-2.  **Install Dependencies**:
-    ```bash
-    pip install -r requirements.txt
-    ```
+---
 
-3.  **Database Configuration**:
-    Copy the example environment file:
-    ```bash
-    cp .env.example .env
-    ```
-    The default configuration uses SQLite (`database.db`).
+## Instalación y Configuración
 
-## Running the Server
+1. **Crear el Entorno Virtual (`venv`)**:
+   ```bash
+   cd /var/www/html/ME_backend
+   python3 -m venv venv
+   ```
 
-Start the development server with hot reload:
+2. **Activar el entorno e instalar dependencias**:
+   ```bash
+   source venv/bin/activate
+   pip install --upgrade pip
+   pip install -r requirements.txt
+   ```
+
+3. **Configurar Variables de Entorno (`.env`)**:
+   Copia el archivo de ejemplo si no existe:
+   ```bash
+   cp .env.example .env
+   ```
+   *La configuración por defecto utiliza SQLite (`database.db`).*
+
+---
+
+## Ejecución del Servidor
+
+### Opción A: Mediante el script de inicio
 ```bash
+cd /var/www/html/ME_backend
 ./start.sh
-# or manually:
+```
+
+### Opción B: Ejecución directa con Uvicorn
+```bash
 ./venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
 ```
-API Documentation will be available at: [http://127.0.0.1:8001/docs](http://127.0.0.1:8001/docs)
 
-## Developer Tools
+* **Documentación interactiva de la API (Swagger UI)**: [http://127.0.0.1:8001/docs](http://127.0.0.1:8001/docs)
+* **Especificación OpenAPI (JSON)**: [http://127.0.0.1:8001/openapi.json](http://127.0.0.1:8001/openapi.json)
 
-### World Visualizer (Terminal)
-A utility script to visualize the generated world map and player position in the terminal.
+> [!NOTE]
+> El servidor escucha en `0.0.0.0:8001` para permitir conexiones tanto desde la web local como desde dispositivos móviles o emuladores en la red.
 
-**Usage:**
+---
+
+## Mantenimiento y Base de Datos
+
+### Reiniciar el Mundo y la Base de Datos
+Para borrar el progreso y regenerar el mundo limpio:
 ```bash
-# Visualize the world and specifically track a player
-python scripts/visualize_world.py [PlayerName]
-
-# Example
-python scripts/visualize_world.py Hero
+./reset_db.sh
 ```
 
-**Output:**
-- Displays an ASCII grid of the generated chunks (e.g., 5x5 area).
-- Marks the player position with `[P]`.
-- **Updates automatically every second.** (Press `Ctrl+C` to stop).
+---
 
-## Testing
+## Herramientas de Desarrollo
 
-Run the test suite:
+### Visualizador del Mundo en Terminal
+Script utilitario para visualizar la cuadrícula del mapa y la posición del jugador en tiempo real:
+
 ```bash
+# Con el entorno virtual activo:
+python scripts/visualize_world.py [NombreDelJugador]
+
+# Ejemplo:
+./venv/bin/python scripts/visualize_world.py Hero
+```
+
+---
+
+## Pruebas Automatizadas
+
+Ejecutar la suite de tests con `pytest`:
+```bash
+./venv/bin/pytest
+# o con el venv activo:
 pytest
 ```
 
-## Client & Mobile Application (Compilation & Build)
+---
 
-For instructions on compiling the web frontend (`dist/`) and generating the **Android APK (Capacitor)**, see:
-- [Frontend README & Build Guide](file:///var/www/html/ME_frontend/README.md#compilaci%C3%B3n-web--android-apk--capacitor)
-- [Mobile Android Build Guide](file:///var/www/html/ME_frontend/docs/mobile_build_guide.md)
+## Cliente Frontend y Aplicación Móvil (Android / APK)
+
+Para instrucciones sobre cómo ejecutar la web, sincronizar Capacitor y compilar el APK para Android:
+- [Guía del Frontend (README)](file:///var/www/html/ME_frontend/README.md)
+- [Guía de Compilación Móvil Android (Capacitor)](file:///var/www/html/ME_frontend/docs/mobile_build_guide.md)
