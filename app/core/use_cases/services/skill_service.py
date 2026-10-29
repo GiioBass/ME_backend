@@ -16,6 +16,19 @@ class SkillService(BaseGameService):
         self._load_skills()
 
     def _load_skills(self):
+        # 1. Load from DB repository if available and populated
+        if hasattr(self.repo, "get_skills"):
+            try:
+                db_skills = self.repo.get_skills()
+                if db_skills:
+                    for skill in db_skills:
+                        self.skills_registry[skill.id.lower()] = skill
+                        self.skills_registry[skill.name.lower()] = skill
+                    return
+            except Exception:
+                pass
+
+        # 2. Fallback to data/skills.json
         base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../data"))
         file_path = os.path.join(base_dir, "skills.json")
         if not os.path.exists(file_path):

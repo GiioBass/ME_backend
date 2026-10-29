@@ -65,63 +65,63 @@ class GameService:
 
     def _setup_command_registry(self):
         self.registry = {
-            # Movement
-            "north": self._cmd_move, "n": self._cmd_move,
-            "south": self._cmd_move, "s": self._cmd_move,
-            "east": self._cmd_move, "e": self._cmd_move,
-            "west": self._cmd_move, "w": self._cmd_move,
-            "up": self._cmd_move, "u": self._cmd_move,
-            "down": self._cmd_move, "d": self._cmd_move,
-            "go": self._cmd_move, "move": self._cmd_move, "walk": self._cmd_move,
+            # Movement (EN + ES)
+            "north": self._cmd_move, "n": self._cmd_move, "norte": self._cmd_move,
+            "south": self._cmd_move, "s": self._cmd_move, "sur": self._cmd_move,
+            "east": self._cmd_move, "e": self._cmd_move, "este": self._cmd_move,
+            "west": self._cmd_move, "w": self._cmd_move, "oeste": self._cmd_move,
+            "up": self._cmd_move, "u": self._cmd_move, "arriba": self._cmd_move, "subir": self._cmd_move,
+            "down": self._cmd_move, "d": self._cmd_move, "abajo": self._cmd_move, "bajar": self._cmd_move,
+            "go": self._cmd_move, "move": self._cmd_move, "walk": self._cmd_move, "mover": self._cmd_move, "ir": self._cmd_move,
             "enter": self._cmd_move, "climb": self._cmd_move,
             
-            # General
-            "look": lambda p, a: self.look(p), "l": lambda p, a: self.look(p),
-            "examine": lambda p, a: self.look(p),
-            "stats": self._cmd_stats, "status": self._cmd_stats,
-            "inventory": lambda p, a: self.map_inventory(p), "inv": lambda p, a: self.map_inventory(p), "i": lambda p, a: self.map_inventory(p),
-            "time": self._cmd_time,
-            "help": self._cmd_help,
-            "clear": lambda p, a: ("Terminal cleared.", *self._get_player_and_location(p)),
-            "scout": self._cmd_scout, "radar": self._cmd_scout, "map": self._cmd_scout,
+            # General (EN + ES)
+            "look": lambda p, a: self.look(p), "l": lambda p, a: self.look(p), "mirar": lambda p, a: self.look(p), "ver": lambda p, a: self.look(p),
+            "examine": lambda p, a: self.look(p), "examinar": lambda p, a: self.look(p),
+            "stats": self._cmd_stats, "status": self._cmd_stats, "estado": self._cmd_stats,
+            "inventory": lambda p, a: self.map_inventory(p), "inv": lambda p, a: self.map_inventory(p), "i": lambda p, a: self.map_inventory(p), "inventario": lambda p, a: self.map_inventory(p),
+            "time": self._cmd_time, "hora": self._cmd_time, "tiempo": self._cmd_time,
+            "help": self._cmd_help, "ayuda": self._cmd_help,
+            "clear": lambda p, a: ("Terminal cleared.", *self._get_player_and_location(p)), "limpiar": lambda p, a: ("Terminal cleared.", *self._get_player_and_location(p)),
+            "scout": self._cmd_scout, "radar": self._cmd_scout, "map": self._cmd_scout, "explorar": self._cmd_scout, "mapa": self._cmd_scout,
 
-            # Interaction & Items
-            "take": self.take_item, "get": self.take_item, "pickup": self.take_item, "grab": self.take_item,
-            "drop": self.drop_item, "discard": self.drop_item,
-            "consume": self._cmd_consume, "eat": self._cmd_consume, "drink": self._cmd_consume, "use": self._cmd_consume,
-            "fill": self.fill_flask, "refill": self.fill_flask,
-            "attack": self.attack_enemy, "fight": self.attack_enemy, "hit": self.attack_enemy, "kill": self.attack_enemy,
+            # Interaction & Items (EN + ES)
+            "take": self.take_item, "get": self.take_item, "pickup": self.take_item, "grab": self.take_item, "tomar": self.take_item, "recoger": self.take_item, "coger": self.take_item,
+            "drop": self.drop_item, "discard": self.drop_item, "soltar": self.drop_item, "tirar": self.drop_item,
+            "consume": self._cmd_consume, "eat": self._cmd_consume, "drink": self._cmd_consume, "use": self._cmd_consume, "consumir": self._cmd_consume, "comer": self._cmd_consume, "beber": self._cmd_consume, "usar": self._cmd_consume,
+            "fill": self.fill_flask, "refill": self.fill_flask, "llenar": self.fill_flask,
+            "attack": self.attack_enemy, "fight": self.attack_enemy, "hit": self.attack_enemy, "kill": self.attack_enemy, "atacar": self.attack_enemy, "pelear": self.attack_enemy,
 
-            # Equipment & Camp
-            "equip": self.equip_item, "wear": self.equip_item, "wield": self.equip_item,
-            "unequip": self.unequip_item, "remove": self.unequip_item,
-            "camp": self.create_camp, "waypoint": self.create_camp,
-            "travel": self.fast_travel, "fasttravel": self.fast_travel,
-            "rest": lambda p, a: self.rest(p), "sleep": lambda p, a: self.rest(p), "wait": lambda p, a: self.rest(p),
-            "chest": lambda p, a: self.list_chest(p), "storage": lambda p, a: self.list_chest(p),
-            "store": self.store_item, "stash": self.store_item,
-            "retrieve": self.retrieve_item, "withdraw": self.retrieve_item,
+            # Equipment & Camp (EN + ES)
+            "equip": self.equip_item, "wear": self.equip_item, "wield": self.equip_item, "equipar": self.equip_item,
+            "unequip": self.unequip_item, "remove": self.unequip_item, "desequipar": self.unequip_item,
+            "camp": self.create_camp, "waypoint": self.create_camp, "campamento": self.create_camp,
+            "travel": self.fast_travel, "fasttravel": self.fast_travel, "viajar": self.fast_travel,
+            "rest": lambda p, a: self.rest(p), "sleep": lambda p, a: self.rest(p), "wait": lambda p, a: self.rest(p), "descansar": lambda p, a: self.rest(p), "dormir": lambda p, a: self.rest(p),
+            "chest": lambda p, a: self.list_chest(p), "storage": lambda p, a: self.list_chest(p), "cofre": lambda p, a: self.list_chest(p),
+            "store": self.store_item, "stash": self.store_item, "guardar": self.store_item,
+            "retrieve": self.retrieve_item, "withdraw": self.retrieve_item, "retirar": self.retrieve_item,
             
-            # Crafting
-            "craft": self.craft_item, "make": self.craft_item, "create": self.craft_item,
-            "recipes": lambda p, a: self.get_recipes_list(p), "blueprints": lambda p, a: self.get_recipes_list(p), "formulas": lambda p, a: self.get_recipes_list(p),
+            # Crafting (EN + ES)
+            "craft": self.craft_item, "make": self.craft_item, "create": self.craft_item, "crear": self.craft_item, "fabricar": self.craft_item,
+            "recipes": lambda p, a: self.get_recipes_list(p), "blueprints": lambda p, a: self.get_recipes_list(p), "formulas": lambda p, a: self.get_recipes_list(p), "recetas": lambda p, a: self.get_recipes_list(p),
 
-            # NPCs, Dialogue & Economy
-            "talk": self.talk_to_npc, "speak": self.talk_to_npc, "greet": self.talk_to_npc,
-            "dialogue": self.choose_dialogue_option, "option": self.choose_dialogue_option, "say": self.choose_dialogue_option, "1": lambda p, a: self.choose_dialogue_option(p, "1"), "2": lambda p, a: self.choose_dialogue_option(p, "2"), "3": lambda p, a: self.choose_dialogue_option(p, "3"), "4": lambda p, a: self.choose_dialogue_option(p, "4"),
-            "leave": lambda p, a: self.end_dialogue(p), "bye": lambda p, a: self.end_dialogue(p), "end_dialogue": lambda p, a: self.end_dialogue(p), "exit_dialogue": lambda p, a: self.end_dialogue(p),
-            "buy": self.buy_item, "purchase": self.buy_item,
-            "sell": self.sell_item,
-            "shop": self._cmd_shop,
+            # NPCs, Dialogue & Economy (EN + ES)
+            "talk": self.talk_to_npc, "speak": self.talk_to_npc, "greet": self.talk_to_npc, "hablar": self.talk_to_npc,
+            "dialogue": self.choose_dialogue_option, "option": self.choose_dialogue_option, "say": self.choose_dialogue_option, "dialogo": self.choose_dialogue_option, "opcion": self.choose_dialogue_option, "1": lambda p, a: self.choose_dialogue_option(p, "1"), "2": lambda p, a: self.choose_dialogue_option(p, "2"), "3": lambda p, a: self.choose_dialogue_option(p, "3"), "4": lambda p, a: self.choose_dialogue_option(p, "4"),
+            "leave": lambda p, a: self.end_dialogue(p), "bye": lambda p, a: self.end_dialogue(p), "end_dialogue": lambda p, a: self.end_dialogue(p), "exit_dialogue": lambda p, a: self.end_dialogue(p), "salir": lambda p, a: self.end_dialogue(p), "adios": lambda p, a: self.end_dialogue(p),
+            "buy": self.buy_item, "purchase": self.buy_item, "comprar": self.buy_item,
+            "sell": self.sell_item, "vender": self.sell_item,
+            "shop": self._cmd_shop, "tienda": self._cmd_shop, "mercado": self._cmd_shop,
 
-            # Quests
-            "quests": lambda p, a: self.list_player_quests(p), "quest": lambda p, a: self.list_player_quests(p), "journal": lambda p, a: self.list_player_quests(p),
-            "turnin": self.turn_in_quest, "complete": self.turn_in_quest,
+            # Quests (EN + ES)
+            "quests": lambda p, a: self.list_player_quests(p), "quest": lambda p, a: self.list_player_quests(p), "journal": lambda p, a: self.list_player_quests(p), "misiones": lambda p, a: self.list_player_quests(p), "diario": lambda p, a: self.list_player_quests(p),
+            "turnin": self.turn_in_quest, "complete": self.turn_in_quest, "entregar": self.turn_in_quest, "completar": self.turn_in_quest,
 
-            # Classes & Skills
-            "class": self.select_class, "choose_class": self.select_class,
-            "skills": lambda p, a: self.list_skills(p), "spells": lambda p, a: self.list_skills(p), "abilities": lambda p, a: self.list_skills(p),
-            "skill": self._cmd_skill, "cast": self._cmd_skill,
+            # Classes & Skills (EN + ES)
+            "class": self.select_class, "choose_class": self.select_class, "clase": self.select_class,
+            "skills": lambda p, a: self.list_skills(p), "spells": lambda p, a: self.list_skills(p), "abilities": lambda p, a: self.list_skills(p), "habilidades": lambda p, a: self.list_skills(p),
+            "skill": self._cmd_skill, "cast": self._cmd_skill, "habilidad": self._cmd_skill,
 
             # Admin
             "admin": self.admin_command, "god": self.admin_command,
@@ -129,7 +129,12 @@ class GameService:
 
     # Command Registry Wrappers
     def _cmd_move(self, player_id: str, arg_str: str) -> Tuple:
-        direction = arg_str if arg_str else "unknown" 
+        dir_map = {
+            "norte": "north", "sur": "south", "este": "east", "oeste": "west",
+            "arriba": "up", "subir": "up", "abajo": "down", "bajar": "down"
+        }
+        raw_dir = arg_str.strip().lower() if arg_str else "unknown"
+        direction = dir_map.get(raw_dir, raw_dir)
         return self.move_player(player_id, direction)
 
     def _cmd_stats(self, player_id: str, arg_str: str) -> Tuple:
@@ -394,7 +399,7 @@ class GameService:
             player, location = self._get_player_and_location(player_id)
             return f"Unknown command: '{action}'. Type 'help' for a list of commands.", player, location
 
-        if action in ["north", "south", "east", "west", "up", "down", "n", "s", "e", "w", "u", "d"] and not arg_str:
+        if action in ["north", "south", "east", "west", "up", "down", "n", "s", "e", "w", "u", "d", "norte", "sur", "este", "oeste", "arriba", "subir", "abajo", "bajar"] and not arg_str:
             arg_str = action
 
         res = handler(player_id, arg_str)

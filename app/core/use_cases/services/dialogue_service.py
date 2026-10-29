@@ -193,13 +193,69 @@ class DialogueService(BaseGameService):
             return f"{npc.name} has no items for sale."
         lines = [f"--- {npc.name}'s Shop ---"]
         for item in npc.shop_inventory:
-            lines.append(f"- {item.item_name}: Buy {item.buy_price}g | Sell {item.sell_price}g")
+            stock_str = f" (Stock: {item.stock})" if item.stock >= 0 else ""
+            lines.append(f"- {item.item_name}: Buy {item.buy_price}g | Sell {item.sell_price}g{stock_str}")
         lines.append("\nUse 'buy [item]' or 'sell [item]'.")
         return "\n".join(lines)
 
+    def get_merchant_shop_data(self, location_id: str) -> Optional[Dict[str, Any]]:
+        npcs = self.get_npcs_in_location(location_id)
+        merchant = next((n for n in npcs if n.npc_type == "merchant" or n.shop_inventory), None)
+        if not merchant or not merchant.shop_inventory:
+            return None
+
+        enriched_items = []
+        for entry in merchant.shop_inventory:
+            template = self.repo.get_item_by_name(entry.item_name)
+            item_type_val = "material"
+            description = f"Standard {entry.item_name} supplied by {merchant.name}."
+            weight = 1.0
+            stat_bonuses = {}
+            equip_slot = None
+            restore_hp = 0
+            restore_mp = 0
+            restore_hunger = 0
+            restore_thirst = 0
+
+            if template:
+                raw_type = getattr(template, "item_type", "material")
+                item_type_val = str(raw_type.value if hasattr(raw_type, "value") else raw_type).lower()
+                description = getattr(template, "description", description) or description
+                weight = getattr(template, "weight", 1.0)
+                stat_bonuses = getattr(template, "stat_bonuses", {}) or {}
+                equip_slot = getattr(template, "equip_slot", None)
+                restore_hp = getattr(template, "restore_hp", 0)
+                restore_mp = getattr(template, "restore_mp", 0)
+                restore_hunger = getattr(template, "restore_hunger", 0)
+                restore_thirst = getattr(template, "restore_thirst", 0)
+
+            enriched_items.append({
+                "name": entry.item_name,
+                "buy_price": entry.buy_price,
+                "sell_price": entry.sell_price,
+                "stock": entry.stock,
+                "description": description,
+                "item_type": item_type_val,
+                "weight": weight,
+                "stat_bonuses": stat_bonuses,
+                "equip_slot": equip_slot,
+                "restore_hp": restore_hp,
+                "restore_mp": restore_mp,
+                "restore_hunger": restore_hunger,
+                "restore_thirst": restore_thirst,
+            })
+
+        return {
+            "merchant_id": merchant.id,
+            "merchant_name": merchant.name,
+            "merchant_title": merchant.title or "Market Outpost",
+            "items": enriched_items
+        }
+
     def buy_item(self, player_id: str, item_name: str, npc_name_or_id: Optional[str] = None) -> Tuple[str, Player, Location]:
         player, location = self._get_player_and_location(player_id)
-        if not item_name:
+        clean_name = (item_name or "").strip()
+        if not clean_name:
             return "Buy what?", player, location
 
         # Locate merchant in location
@@ -208,9 +264,15 @@ class DialogueService(BaseGameService):
         if not merchant:
             return "There is no merchant here to buy from.", player, location
 
-        shop_entry = next((s for s in merchant.shop_inventory if s.item_name.lower() == item_name.lower()), None)
+        query = clean_name.lower()
+        shop_entry = next((s for s in merchant.shop_inventory if s.item_name.lower() == query), None)
         if not shop_entry:
-            return f"{merchant.name} does not sell '{item_name}'.", player, location
+            shop_entry = next((s for s in merchant.shop_inventory if query in s.item_name.lower()), None)
+        if not shop_entry:
+            return f"{merchant.name} does not sell '{clean_name}'.", player, location
+
+        if shop_entry.stock == 0:
+            return f"{merchant.name} is out of stock for {shop_entry.item_name}.", player, location
 
         if player.stats.gold < shop_entry.buy_price:
             return f"You do not have enough gold. Requires {shop_entry.buy_price}g (You have {player.stats.gold}g).", player, location
@@ -235,6 +297,9 @@ class DialogueService(BaseGameService):
         if player.current_weight + template.weight > player.stats.max_weight:
             return f"You cannot carry {template.name}, your inventory is full.", player, location
 
+        if shop_entry.stock > 0:
+            shop_entry.stock -= 1
+
         player.stats.gold -= shop_entry.buy_price
         player.add_item(template)
         self.repo.save_player(player)
@@ -243,7 +308,8 @@ class DialogueService(BaseGameService):
 
     def sell_item(self, player_id: str, item_name: str) -> Tuple[str, Player, Location]:
         player, location = self._get_player_and_location(player_id)
-        if not item_name:
+        clean_name = (item_name or "").strip()
+        if not clean_name:
             return "Sell what?", player, location
 
         npcs = self.get_npcs_in_location(location.id)
@@ -251,9 +317,9 @@ class DialogueService(BaseGameService):
         if not merchant:
             return "There is no merchant here to sell items to.", player, location
 
-        found_item = player.remove_item(item_name)
+        found_item = player.remove_item(clean_name)
         if not found_item:
-            return f"You don't have '{item_name}' in your inventory.", player, location
+            return f"You don't have '{clean_name}' in your inventory.", player, location
 
         shop_entry = next((s for s in merchant.shop_inventory if s.item_name.lower() == found_item.name.lower()), None)
         sell_price = shop_entry.sell_price if shop_entry else max(1, found_item.value // 2)

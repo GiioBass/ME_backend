@@ -51,8 +51,17 @@ class CraftingService(BaseGameService):
         # Check required station if present
         req_station = getattr(recipe, 'required_station', None)
         if req_station and req_station.lower() not in ["none", ""]:
+            req_lower = req_station.lower()
+            valid_tokens = [req_lower]
+            if req_lower == "anvil":
+                valid_tokens.append("forge")
+            elif req_lower == "alchemy_table":
+                valid_tokens.append("alchemy")
             # Check if current location has the workstation interactable
-            station_match = any(req_station.lower() in str(inter).lower() for inter in getattr(location, 'interactables', []))
+            station_match = any(
+                any(tok in str(inter).lower() for tok in valid_tokens)
+                for inter in getattr(location, 'interactables', [])
+            )
             if not station_match:
                 return f"You need a {req_station.replace('_', ' ').title()} nearby to craft {recipe.name}.", player, location
 

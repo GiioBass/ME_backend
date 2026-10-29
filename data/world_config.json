@@ -58,6 +58,15 @@
         },
         {
             "coords": {
+                "x": 0,
+                "y": -4,
+                "z": 0
+            },
+            "name": "Black Sphinx Sanctum",
+            "description": "Colossal black basalt paws rise from the scorched dunes. At the center of the sunken altar crouches the Black Hound Sphinx, guarding the deep desert."
+        },
+        {
+            "coords": {
                 "x": 2,
                 "y": -4,
                 "z": 0

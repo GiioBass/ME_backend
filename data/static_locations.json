@@ -2,7 +2,7 @@
     {
         "id": "loc_0_0_0",
         "name": "Oakfield Hub",
-        "description": "You stand in the center of Oakfield, a bustling safe haven. A sturdy forge burns to the west, and a merchant's wagon is parked to the east. The wilderness calls from the north and south.",
+        "description": "You stand in the center of Oakfield, a bustling safe haven. A sturdy forge burns to the west, a craftsman workbench and an alchemy table stand ready nearby, and a merchant wagon is parked to the east. The wilderness calls from the north and south.",
         "coordinates": {
             "x": 0,
             "y": 0,
@@ -16,6 +16,8 @@
         },
         "interactables": [
             "forge",
+            "workbench",
+            "alchemy_table",
             "wagon"
         ],
         "items": [],

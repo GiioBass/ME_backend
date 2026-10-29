@@ -196,12 +196,15 @@ class BaseGameService:
             drops.append("base_poison_sac")
         elif "bat" in name_lower:
             drops.append("base_bone")
+        elif "sphinx" in name_lower or "hound" in name_lower:
+            drops.append("base_bone")
+            drops.append("base_obsidian_blade")
         else:
             drops.append("base_bone")
             if random.random() < 0.15: drops.append("base_rusty_sword")
 
         # Boss or abyssal loot bonus
-        if getattr(enemy, 'is_boss', False) or any(k in name_lower for k in ["warden", "abyssal", "boss", "tyrant", "dread"]):
+        if getattr(enemy, 'is_boss', False) or any(k in name_lower for k in ["warden", "abyssal", "boss", "tyrant", "dread", "sphinx"]):
             drops.append("base_abyssal_core")
             if random.random() < 0.50: drops.append("base_iron_sword")
 
@@ -224,6 +227,7 @@ class BaseGameService:
             "base_leather_armor": {"name": "Worn Leather Armor", "description": "A stiff leather chestpiece.", "item_type": ItemType.ARMOR, "value": 30, "weight": 4.0, "equip_slot": "armor", "stat_bonuses": {"defense": 2}, "durability": 20, "max_durability": 100},
             "base_cracked_shield": {"name": "Cracked Wooden Shield", "description": "A wooden board that barely resembles a shield.", "item_type": ItemType.ARMOR, "value": 15, "weight": 2.5, "equip_slot": "armor", "stat_bonuses": {"defense": 1}, "durability": 8, "max_durability": 100},
             "base_iron_sword": {"name": "Iron Sword", "description": "A lethal sharpened blade forged of solid iron.", "item_type": ItemType.WEAPON, "value": 60, "weight": 3.5, "equip_slot": "weapon", "stat_bonuses": {"strength": 12}, "durability": 100, "max_durability": 100},
+            "base_obsidian_blade": {"name": "Obsidian Blade", "description": "A razor-sharp blade of volcanic glass.", "item_type": ItemType.WEAPON, "value": 150, "weight": 2.5, "equip_slot": "weapon", "stat_bonuses": {"strength": 10}, "durability": 30, "max_durability": 100},
             "base_abyssal_core": {"name": "Abyssal Core", "description": "A glowing dark core.", "item_type": ItemType.MATERIAL, "value": 500, "weight": 1.0},
             "base_wild_apple": {"name": "Wild Apple", "description": "A crunchy wild apple.", "item_type": ItemType.CONSUMABLE, "value": 3, "weight": 0.2, "restore_hunger": 15, "restore_hp_pct": 0.15, "restore_thirst": 5}
         }

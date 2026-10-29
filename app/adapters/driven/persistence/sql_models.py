@@ -182,3 +182,59 @@ class RecipeDB(SQLModel, table=True):
             category=recipe.category,
             required_station=getattr(recipe, 'required_station', 'none')
         )
+
+
+# --- Skills ---
+class SkillDB(SQLModel, table=True):
+    id: str = Field(primary_key=True)
+    name: str = Field(index=True, unique=True)
+    description: str
+    character_class: str = "adventurer"
+    skill_type: str = "active"
+    required_level: int = 1
+    mp_cost: int = 0
+    energy_cost: int = 0
+    cooldown_turns: int = 0
+    damage_multiplier: float = 1.0
+    bonus_damage: int = 0
+    effect_type: Optional[str] = None
+    effect_duration: int = 0
+    effect_value: int = 0
+
+    def to_domain(self) -> "Skill":
+        from app.core.domain.skill import Skill, CharacterClass, SkillType
+        return Skill(
+            id=self.id,
+            name=self.name,
+            description=self.description,
+            character_class=CharacterClass(self.character_class or "adventurer"),
+            skill_type=SkillType(self.skill_type or "active"),
+            required_level=self.required_level,
+            mp_cost=self.mp_cost,
+            energy_cost=self.energy_cost,
+            cooldown_turns=self.cooldown_turns,
+            damage_multiplier=self.damage_multiplier,
+            bonus_damage=self.bonus_damage,
+            effect_type=self.effect_type,
+            effect_duration=self.effect_duration,
+            effect_value=self.effect_value
+        )
+
+    @classmethod
+    def from_domain(cls, skill: "Skill") -> "SkillDB":
+        return cls(
+            id=skill.id,
+            name=skill.name,
+            description=skill.description,
+            character_class=skill.character_class.value if hasattr(skill.character_class, "value") else str(skill.character_class),
+            skill_type=skill.skill_type.value if hasattr(skill.skill_type, "value") else str(skill.skill_type),
+            required_level=skill.required_level,
+            mp_cost=skill.mp_cost,
+            energy_cost=skill.energy_cost,
+            cooldown_turns=getattr(skill, "cooldown_turns", 0),
+            damage_multiplier=skill.damage_multiplier,
+            bonus_damage=skill.bonus_damage,
+            effect_type=skill.effect_type,
+            effect_duration=skill.effect_duration,
+            effect_value=skill.effect_value
+        )

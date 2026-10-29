@@ -99,11 +99,33 @@
                 "attack": 0,
                 "xp_reward": 100
             }
+        },
+        {
+            "trigger_coords": {
+                "x": 0,
+                "y": -4,
+                "z": 0
+            },
+            "enemy": {
+                "name": "Black Hound Sphinx",
+                "description": "An ancient desert sphinx with the sleek obsidian body of a winged lion and the fierce head of a black jackal-hound. Golden eyes burn beneath its nemes headdress.",
+                "hp": 90,
+                "attack": 11,
+                "xp_reward": 150,
+                "is_boss": true
+            }
         }
     ],
     "bosses": {
         "base_hp": 100,
         "base_attack": 15,
+        "desert_boss": {
+            "name": "Black Hound Sphinx",
+            "description": "An ancient desert sphinx with the sleek obsidian body of a winged lion and the fierce head of a black jackal-hound.",
+            "hp": 90,
+            "attack": 11,
+            "xp_reward": 150
+        },
         "prefixes": [
             "Abyssal",
             "Tyrant",

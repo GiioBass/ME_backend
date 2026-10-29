@@ -98,6 +98,38 @@ class DataLoader:
                 self.repo.create_recipe(recipe)
         print(f"Seeded {len(data)} recipes from JSON.")
 
+    def seed_skills(self):
+        from app.core.domain.skill import Skill, CharacterClass, SkillType
+        file_path = os.path.join(self.data_path, "skills.json")
+        if not os.path.exists(file_path):
+            print(f"Warning: {file_path} not found.")
+            return
+
+        if not hasattr(self.repo, "save_skill"):
+            return
+
+        with open(file_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            for s_data in data:
+                skill = Skill(
+                    id=s_data["id"],
+                    name=s_data["name"],
+                    description=s_data["description"],
+                    character_class=CharacterClass(s_data.get("character_class", "adventurer")),
+                    skill_type=SkillType(s_data.get("skill_type", "active")),
+                    required_level=s_data.get("required_level", 1),
+                    mp_cost=s_data.get("mp_cost", 0),
+                    energy_cost=s_data.get("energy_cost", 0),
+                    cooldown_turns=s_data.get("cooldown_turns", 0),
+                    damage_multiplier=s_data.get("damage_multiplier", 1.0),
+                    bonus_damage=s_data.get("bonus_damage", 0),
+                    effect_type=s_data.get("effect_type"),
+                    effect_duration=s_data.get("effect_duration", 0),
+                    effect_value=s_data.get("effect_value", 0)
+                )
+                self.repo.save_skill(skill)
+        print(f"Seeded {len(data)} skills from JSON.")
+
     # Helpers to get raw config for generators/services
     def get_world_config(self) -> dict:
         return self._load_json("world_config.json")

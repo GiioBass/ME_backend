@@ -18,7 +18,8 @@ def test_class_selection_and_skills():
     # 2. View Skills
     msg, _, _ = service.process_command(player.id, "skills")
     assert "Fireball" in msg
-    assert "20 MP" in msg
+    assert "8 MP" in msg
+    assert "10 MP" in msg
 
 def test_skill_combat_execution():
     repo = InMemoryGameRepository()
@@ -80,4 +81,18 @@ def test_free_skill_cooldown_and_alternation():
     # 4. Cast Slash again -> succeeds now that it has recharged
     msg_success, p4, _ = service.process_command(player.id, "skill Slash Training Dummy")
     assert "You cast [Slash]" in msg_success
+
+
+def test_desert_boss_black_hound_sphinx():
+    repo = InMemoryGameRepository()
+    service = GameService(repo)
+    loc = service.world_gen.generate_single_location(0, -4, 0, biome="desert")
+    assert loc.name == "Black Sphinx Sanctum"
+    sphinx = next((e for e in loc.enemies if e.name == "Black Hound Sphinx"), None)
+    assert sphinx is not None
+    assert sphinx.is_boss is True
+    assert sphinx.hp == 90
+    assert sphinx.attack == 11
+    assert sphinx.xp_reward == 150
+
 

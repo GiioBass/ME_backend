@@ -114,16 +114,18 @@ class WorldGenerator:
             from app.core.domain.enemy import Enemy
             import uuid
             e_data = special["enemy"]
-            special_enemy = Enemy(
-                id=str(uuid.uuid4()),
-                name=e_data["name"],
-                description=e_data["description"],
-                hp=e_data["hp"],
-                max_hp=e_data["hp"],
-                attack=e_data["attack"],
-                xp_reward=e_data["xp_reward"]
-            )
-            location.add_enemy(special_enemy)
+            if not any(existing.name.lower() == e_data["name"].lower() for existing in location.enemies):
+                special_enemy = Enemy(
+                    id=str(uuid.uuid4()),
+                    name=e_data["name"],
+                    description=e_data["description"],
+                    hp=e_data["hp"],
+                    max_hp=e_data["hp"],
+                    attack=e_data["attack"],
+                    xp_reward=e_data["xp_reward"],
+                    is_boss=e_data.get("is_boss", False)
+                )
+                location.add_enemy(special_enemy)
         else:
             self._populate_enemies(location, biome, z)
         return location

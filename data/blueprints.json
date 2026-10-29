@@ -85,5 +85,32 @@
             }
         ],
         "guaranteed_items": []
+    },
+    {
+        "id": "black_sphinx_sanctum",
+        "name": "Black Sphinx Sanctum",
+        "description": "Colossal black basalt paws rise from the scorched dunes. At the center of the sunken altar crouches the Black Hound Sphinx, guarding the deep desert.",
+        "allowed_biomes": [
+            "desert"
+        ],
+        "guaranteed_enemies": [
+            {
+                "name": "Black Hound Sphinx",
+                "description": "An ancient desert sphinx with the sleek obsidian body of a winged lion and the fierce head of a black jackal-hound. Golden eyes burn beneath its nemes headdress.",
+                "hp": 90,
+                "attack": 11,
+                "xp_reward": 150,
+                "is_boss": true
+            }
+        ],
+        "guaranteed_items": [
+            {
+                "name": "Obsidian Jackal Idol",
+                "description": "A sacred relic carved from black desert glass in the likeness of the Black Hound Sphinx.",
+                "type": "MATERIAL",
+                "weight": 1.0,
+                "value": 120
+            }
+        ]
     }
 ]

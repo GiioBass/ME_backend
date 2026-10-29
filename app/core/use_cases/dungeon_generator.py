@@ -161,19 +161,32 @@ class DungeonGenerator:
         
         boss_conf = self.enemies_config.get("bosses", {})
         depth_mult = abs(z)
-        hp = boss_conf.get("base_hp", 100) * depth_mult
-        attack = boss_conf.get("base_attack", 15) * depth_mult
         prefixes = boss_conf.get("prefixes", ["Ancient"])
-        name = f"{random.choice(prefixes)} Warden"
+        is_desert = loc.coordinates and loc.coordinates.y <= -2
+        desert_boss_conf = boss_conf.get("desert_boss")
+
+        if is_desert and desert_boss_conf:
+            base_name = desert_boss_conf.get("name", "Black Hound Sphinx")
+            name = base_name if depth_mult == 1 else f"{random.choice(prefixes)} {base_name}"
+            desc = desert_boss_conf.get("description", "An ancient desert sphinx with the sleek obsidian body of a black hound.")
+            hp = desert_boss_conf.get("hp", 90) * depth_mult
+            attack = desert_boss_conf.get("attack", 11) * depth_mult
+            xp_reward = desert_boss_conf.get("xp_reward", 150) * depth_mult
+        else:
+            hp = boss_conf.get("base_hp", 100) * depth_mult
+            attack = boss_conf.get("base_attack", 15) * depth_mult
+            name = f"{random.choice(prefixes)} Warden"
+            desc = "The guardian of this dungeon floor. Defeat it to proceed deeper."
+            xp_reward = 100 * depth_mult
         
         boss = Enemy(
             id=str(uuid.uuid4()),
             name=name,
-            description="The guardian of this dungeon floor. Defeat it to proceed deeper.",
+            description=desc,
             hp=hp,
             max_hp=hp,
             attack=attack,
-            xp_reward=100 * depth_mult,
+            xp_reward=xp_reward,
             is_boss=True
         )
         loc.add_enemy(boss)

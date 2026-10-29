@@ -66,3 +66,42 @@ def test_merchant_trade_system():
     assert "You sold Health Potion" in msg
     assert p.stats.gold == 40
     assert not any(i.name == "Health Potion" for i in p.inventory)
+
+
+def test_merchant_full_inventory_and_i18n():
+    from app.core.i18n import set_current_lang, translate_text
+
+    repo = InMemoryGameRepository()
+    service = GameService(repo)
+    player, location = service.create_new_player("RichTrader")
+    player.stats.gold = 200
+    repo.save_player(player)
+
+    shop_data = service.dialogue_service.get_merchant_shop_data(location.id)
+    assert shop_data is not None
+    item_names = [item["name"] for item in shop_data["items"]]
+    assert "Iron Dagger" in item_names
+    assert "Leather Armor" in item_names
+    assert "Rations" in item_names
+    assert "Health Potion" in item_names
+    assert "Mana Potion" in item_names
+
+    # Buy Iron Dagger (35g), Leather Armor (45g), Rations (10g)
+    msg, p, _ = service.process_command(player.id, "buy Iron Dagger")
+    assert "You bought Iron Dagger for 35 Gold" in msg
+    assert p.stats.gold == 165
+
+    msg, p, _ = service.process_command(player.id, "buy Leather Armor")
+    assert "You bought Leather Armor for 45 Gold" in msg
+    assert p.stats.gold == 120
+
+    # Test Spanish command alias ('comprar Rations') and Spanish translation
+    set_current_lang("es")
+    try:
+        msg, p, _ = service.process_command(player.id, "comprar Rations")
+        translated = translate_text(msg, "es")
+        assert "Compraste Rations por 10 de Oro" in translated
+        assert p.stats.gold == 110
+    finally:
+        set_current_lang("en")
+

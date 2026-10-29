@@ -88,5 +88,15 @@
         "weight": 0.8,
         "restore_thirst": 50,
         "restore_hp": 5
+    },
+    {
+        "id": "base_rations",
+        "name": "Rations",
+        "description": "Nutritious trail food restoring 50 hunger and minor vitality.",
+        "item_type": "consumable",
+        "value": 10,
+        "weight": 0.4,
+        "restore_hunger": 50,
+        "restore_hp": 10
     }
 ]

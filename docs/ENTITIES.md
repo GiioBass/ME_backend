@@ -50,7 +50,9 @@ Este documento lista los tipos de asentamientos, habitantes y amenazas que pobla
 - [ ] **Chamán Goblin** (Usa magia de fuego, cura a otros goblins).
 - [ ] **Caballero Caído** (Armadura pesada, requiere estrategia para dañar).
 
-### Jefes de Mazmorra (Bosses)
+### Jefes de Bioma y Mazmorra (Bosses)
+- [x] **Black Hound Sphinx (Esfinge Perro Negro)** (Jefe del Desierto en `Black Sphinx Sanctum` `(0, -4, 0)` y mazmorras del desierto; `90 HP`, `11 ATK`, `150 XP`).
+- [x] **Dungeon Wardens (`Abyssal / Tyrant / Cursed / Ancient / Dread Warden`)** (Guardianes de piso de mazmorra en `Z < 0`; `100 * |Z| HP`, `15 * |Z| ATK`, `100 * |Z| XP`).
 - [ ] **Reina Araña** (Invoca arañas menores, atrapa en telas).
 - [ ] **Golem de Piedra Ancestral** (Casi invulnerable, tiene puntos débiles).
 - [ ] **Nigromante Oscuro** (Revive esqueletos, lanza maldiciones).

@@ -350,14 +350,32 @@ class SQLGameRepository(GameRepository):
 
     def get_item_by_name(self, name_or_id: str) -> Optional[Item]:
         with Session(self.engine) as session:
-            # 1. Try by ID
-            db_item = session.get(ItemDB, name_or_id)
+            clean = name_or_id.strip()
+            # 1. Try by ID directly
+            db_item = session.get(ItemDB, clean)
             if db_item:
                 return db_item.to_domain()
-            
-            # 2. Try by Name (Case-insensitive)
-            db_item = session.exec(select(ItemDB).where(ItemDB.name.ilike(name_or_id))).first()
-            if db_item:
-                return db_item.to_domain()
+
+            # 2. Try by Name (Case-insensitive), preferring base templates over player instances
+            matches = session.exec(select(ItemDB).where(ItemDB.name.ilike(clean))).all()
+            if matches:
+                base_match = next((m for m in matches if str(m.id).startswith("base_")), matches[0])
+                return base_match.to_domain()
             
             return None
+
+    def get_skills(self) -> List[Any]:
+        from app.adapters.driven.persistence.sql_models import SkillDB
+        with Session(self.engine) as session:
+            db_skills = session.exec(select(SkillDB)).all()
+            return [s.to_domain() for s in db_skills]
+
+    def save_skill(self, skill: Any):
+        from app.adapters.driven.persistence.sql_models import SkillDB
+        with Session(self.engine) as session:
+            existing = session.exec(select(SkillDB).where(SkillDB.name == skill.name)).first()
+            db_skill = SkillDB.from_domain(skill)
+            if existing:
+                db_skill.id = existing.id
+            session.merge(db_skill)
+            session.commit()

@@ -8,9 +8,11 @@ from app.core.domain.item import Item, ItemType
 
 class BlueprintEnemyDef(BaseModel):
     name: str
+    description: Optional[str] = None
     hp: int
     attack: int
     xp_reward: int
+    is_boss: bool = False
 
 class BlueprintItemDef(BaseModel):
     name: str
@@ -33,11 +35,12 @@ class POIBlueprint(BaseModel):
             enemies.append(Enemy(
                 id=str(uuid.uuid4()),
                 name=e_def.name,
-                description=f"A hostile {e_def.name}.",
+                description=e_def.description or f"A hostile {e_def.name}.",
                 hp=e_def.hp,
                 max_hp=e_def.hp,
                 attack=e_def.attack,
-                xp_reward=e_def.xp_reward
+                xp_reward=e_def.xp_reward,
+                is_boss=e_def.is_boss
             ))
         return enemies
 

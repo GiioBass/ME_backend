@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from app.core.use_cases.game_service import GameService
 from app.ports.repositories import GameRepository
 from app.core.services.auth_service import auth_service
+from app.core.i18n import get_current_lang, translate_response, translate_commands_list, translate_text
 
 # DTOs
 class RegisterRequest(BaseModel):
@@ -146,7 +147,12 @@ def serialize_player(player) -> dict:
                 node = npc.dialogue_nodes[node_id]
                 dlg["text"] = node.text
                 dlg["options"] = [
-                    {"id": str(i + 1), "text": c.text, "choice_id": c.choice_id}
+                    {
+                        "id": str(i + 1),
+                        "text": c.text,
+                        "choice_id": c.choice_id,
+                        "action": c.action
+                    }
                     for i, c in enumerate(node.choices)
                 ]
         except Exception:
@@ -262,7 +268,7 @@ def serialize_enemy(enemy) -> dict:
 def raise_game_error(e: ValueError):
     raise HTTPException(
         status_code=400, 
-        detail={"error": True, "message": str(e), "code": "INVALID_ACTION"}
+        detail={"error": True, "message": translate_text(str(e), get_current_lang()), "code": "INVALID_ACTION"}
     )
 
 def get_available_actions(player: dict, location: dict, world_time: dict) -> list[str]:
@@ -367,9 +373,10 @@ def get_available_actions(player: dict, location: dict, world_time: dict) -> lis
     if has_any_station:
         actions.append("workshop")
 
-    # Only provide craft actions if the player is actually at a valid workstation
+    # Field craft (no station) can be crafted anywhere.
+    # Workstation craft strictly requires being at that specific workstation.
     recipes = _repo.get_recipes()
-    if player and player.get("inventory") and has_any_station:
+    if player and player.get("inventory"):
         from collections import Counter
         inv_counts = Counter(item.get("name") if isinstance(item, dict) else getattr(item, "name", "") for item in player["inventory"])
         
@@ -405,10 +412,16 @@ def format_response(msg: str, player: dict, location: dict, world_time: dict, sc
     
     loc_id = getattr(location, "id", None) if hasattr(location, "id") else (location.get("id") if isinstance(location, dict) else None)
     present = []
+    shop_data = None
     if loc_id:
         try:
             from app.adapters.driving.websocket.connection_manager import manager
             present = manager.get_room_players(loc_id)
+        except Exception:
+            pass
+        try:
+            service_for_shop = GameService(_repo)
+            shop_data = service_for_shop.dialogue_service.get_merchant_shop_data(loc_id)
         except Exception:
             pass
 
@@ -423,13 +436,15 @@ def format_response(msg: str, player: dict, location: dict, world_time: dict, sc
             "enemies": [serialize_enemy(e) for e in location.enemies],
             "interactables": list(getattr(location, 'interactables', [])),
             "coordinates": location.coordinates.model_dump() if location.coordinates else None,
-            "present_players": present
+            "present_players": present,
+            "shop": shop_data
         }
     else:
         serialized_location = dict(location)
         if "interactables" not in serialized_location:
             serialized_location["interactables"] = []
         serialized_location["present_players"] = present
+        serialized_location["shop"] = shop_data
         
     serialized_time = serialize_time(world_time)
     actions = get_available_actions(serialized_player, serialized_location, serialized_time)
@@ -447,7 +462,7 @@ def format_response(msg: str, player: dict, location: dict, world_time: dict, sc
     }
     if scouted is not None:
         resp["scouted_locations"] = scouted
-    return resp
+    return translate_response(resp, get_current_lang())
 
 @router.post("/auth/register", response_model=GameResponse)
 def auth_register(req: RegisterRequest):
@@ -676,7 +691,7 @@ def inventory(req: PlayerIdRequest):
 @router.get("/commands", response_model=list[CommandHelpResponse])
 def get_commands():
     service = GameService(_repo)
-    return service.get_command_help()
+    return translate_commands_list(service.get_command_help(), get_current_lang())
 
 @router.post("/player/inventory")
 def get_player_inventory(req: PlayerIdRequest):
