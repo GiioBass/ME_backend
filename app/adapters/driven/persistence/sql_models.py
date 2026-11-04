@@ -125,6 +125,11 @@ class EnemyDB(SQLModel, table=True):
     is_boss: bool = False
     level: int = 1
     loot: List[dict] = Field(default=[], sa_type=JSON)
+    skills: List[dict] = Field(default=[], sa_type=JSON)
+    cooldowns: dict = Field(default={}, sa_type=JSON)
+    base_hp: Optional[int] = Field(default=None)
+    base_attack: Optional[int] = Field(default=None)
+    scaled_players_count: int = Field(default=1)
 
 class LocationEnemyDB(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)

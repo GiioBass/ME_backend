@@ -116,6 +116,50 @@
                 }
             ]
         },
+        "snow": {
+            "item_spawn_chance": 0.35,
+            "equipment_chance": 0.06,
+            "loot_pool": [
+                {
+                    "item_id": "base_stone",
+                    "weight": 25
+                },
+                {
+                    "item_id": "base_wool",
+                    "weight": 20
+                },
+                {
+                    "item_id": "base_blue_herb",
+                    "weight": 15
+                },
+                {
+                    "item_id": "base_torch",
+                    "weight": 15
+                },
+                {
+                    "item_id": "base_cloth",
+                    "weight": 15
+                },
+                {
+                    "item_id": "base_empty_flask",
+                    "weight": 10
+                }
+            ],
+            "equipment_pool": [
+                {
+                    "item_id": "base_stone_pickaxe",
+                    "weight": 40
+                },
+                {
+                    "item_id": "base_leather_armor",
+                    "weight": 40
+                },
+                {
+                    "item_id": "base_iron_sword",
+                    "weight": 20
+                }
+            ]
+        },
         "default": {
             "item_spawn_chance": 0.15,
             "equipment_chance": 0.02,

@@ -14,12 +14,28 @@
             "You see a mirage in the distance.",
             "Cracked earth beneath your feet."
         ],
+        "snow": [
+            "Bitter glacial winds sweep across the frozen snow drifts.",
+            "Craggy frozen peaks rise majestically into the frosted sky.",
+            "Crunching permafrost and snow give way beneath your boots.",
+            "Icicles hang like crystalline daggers from the snowy stone.",
+            "A chilling white blizzard briefly obscures your vision."
+        ],
         "default": [
             "The surroundings are nondescript.",
             "You don't see anything unusual."
         ]
     },
     "pois": [
+        {
+            "coords": {
+                "x": 0,
+                "y": 4,
+                "z": 0
+            },
+            "name": "Mount Frostspire",
+            "description": "A colossal, snow-capped mountain piercing the northern clouds. An ice-carved archway ascends into the frozen interior of the mountain."
+        },
         {
             "coords": {
                 "x": 0,

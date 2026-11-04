@@ -46,6 +46,32 @@
                 "xp": 20
             }
         ],
+        "snow": [
+            {
+                "name": "Frost Wolf",
+                "hp": 25,
+                "attack": 6,
+                "xp": 25
+            },
+            {
+                "name": "Ice Sprite",
+                "hp": 20,
+                "attack": 5,
+                "xp": 20
+            },
+            {
+                "name": "Snow Stalker",
+                "hp": 35,
+                "attack": 8,
+                "xp": 35
+            },
+            {
+                "name": "Glacial Yeti",
+                "hp": 55,
+                "attack": 11,
+                "xp": 60
+            }
+        ],
         "underground": [
             {
                 "name": "Cave Spider",
@@ -112,19 +138,140 @@
                 "hp": 90,
                 "attack": 11,
                 "xp_reward": 150,
-                "is_boss": true
+                "is_boss": true,
+                "skills": [
+                    {
+                        "name": "Obsidian Sandstorm",
+                        "damage": 18,
+                        "cooldown": 3,
+                        "desc": "whips up a whirlwind of razor-sharp black obsidian sand"
+                    },
+                    {
+                        "name": "Jackal's Cursed Bite",
+                        "damage": 22,
+                        "cooldown": 2,
+                        "desc": "bites with necrotic jackal fangs infused with ancient curses"
+                    },
+                    {
+                        "name": "Basalt Aegis",
+                        "damage": 0,
+                        "heal": 25,
+                        "cooldown": 4,
+                        "desc": "hardens its obsidian skin, absorbing blows and restoring 25 HP"
+                    }
+                ]
+            }
+        },
+        {
+            "trigger_coords": {
+                "x": 0,
+                "y": 4,
+                "z": 3
+            },
+            "enemy": {
+                "name": "Monstrous Snow Golem",
+                "description": "A towering titan carved from glacial permafrost and enchanted mountain ice. Its glowing cyan eyes emanate bone-chilling frost.",
+                "hp": 120,
+                "attack": 14,
+                "xp_reward": 250,
+                "is_boss": true,
+                "skills": [
+                    {
+                        "name": "Glacial Avalanche",
+                        "damage": 22,
+                        "cooldown": 3,
+                        "desc": "summons a cascade of crushing frozen boulders"
+                    },
+                    {
+                        "name": "Freezing Blizzard",
+                        "damage": 15,
+                        "cooldown": 2,
+                        "desc": "unleashes a subzero howling blizzard that chills the air"
+                    },
+                    {
+                        "name": "Permafrost Armor",
+                        "damage": 0,
+                        "heal": 30,
+                        "cooldown": 4,
+                        "desc": "absorbs nearby ice to reconstruct its frozen body (+30 HP)"
+                    }
+                ]
             }
         }
     ],
     "bosses": {
         "base_hp": 100,
         "base_attack": 15,
+        "skills": [
+            {
+                "name": "Abyssal Slam",
+                "damage": 20,
+                "cooldown": 3,
+                "desc": "slams its massive chained maul into the ground"
+            },
+            {
+                "name": "Runic Barrier",
+                "damage": 0,
+                "heal": 25,
+                "cooldown": 4,
+                "desc": "chants in forgotten tongues, raising a glowing runic barrier (+25 HP)"
+            }
+        ],
         "desert_boss": {
             "name": "Black Hound Sphinx",
             "description": "An ancient desert sphinx with the sleek obsidian body of a winged lion and the fierce head of a black jackal-hound.",
             "hp": 90,
             "attack": 11,
-            "xp_reward": 150
+            "xp_reward": 150,
+            "skills": [
+                {
+                    "name": "Obsidian Sandstorm",
+                    "damage": 18,
+                    "cooldown": 3,
+                    "desc": "whips up a whirlwind of razor-sharp black obsidian sand"
+                },
+                {
+                    "name": "Jackal's Cursed Bite",
+                    "damage": 22,
+                    "cooldown": 2,
+                    "desc": "bites with necrotic jackal fangs infused with ancient curses"
+                },
+                {
+                    "name": "Basalt Aegis",
+                    "damage": 0,
+                    "heal": 25,
+                    "cooldown": 4,
+                    "desc": "hardens its obsidian skin, absorbing blows and restoring 25 HP"
+                }
+            ]
+        },
+        "mountain_boss": {
+            "name": "Monstrous Snow Golem",
+            "description": "A towering titan carved from glacial permafrost and enchanted mountain ice. Its glowing cyan eyes emanate bone-chilling frost.",
+            "hp": 120,
+            "attack": 14,
+            "xp_reward": 250,
+            "skills": [
+                {
+                    "name": "Glacial Avalanche",
+                    "damage": 22,
+                    "cooldown": 3,
+                    "desc": "summons a cascade of crushing frozen boulders"
+                },
+                {
+                    "name": "Freezing Blizzard",
+                    "damage": 15,
+                    "cooldown": 2,
+                    "desc": "unleashes a subzero howling blizzard that chills the air"
+                },
+                {
+                    "name": "Permafrost Armor",
+                    "damage": 0,
+                    "heal": 30,
+                    "cooldown": 4,
+                    "desc": "absorbs nearby ice to reconstruct its frozen body (+30 HP)"
+                }
+            ]
         },
         "prefixes": [
             "Abyssal",

@@ -24,6 +24,10 @@ class WorldGenerator:
     def get_biome_for_coords(self, x: int, y: int, z: int) -> str:
         if z < 0:
             return "underground"
+        if z > 0:
+            return "snow"
+        if y >= 3:
+            return "snow"
         if y <= -2:
             return "desert"
         return "forest"
@@ -88,6 +92,16 @@ class WorldGenerator:
                     location.exits["down"] = cave_id
                     if cave_conf["description_suffix"] not in location.description:
                         location.description += cave_conf["description_suffix"]
+
+            # Mountain Ascending Entrances (Mount Frostspire & snowy mountain peaks)
+            is_mountain_poi = any(k in name.lower() for k in ["frostspire", "mountain", "summit", "peak"])
+            if z == 0 and is_mountain_poi:
+                if "up" not in location.exits:
+                    mtn_id = f"mtn_{x}_{y}_1_start"
+                    location.exits["up"] = mtn_id
+                    asc_suffix = " An ice-carved cavern passage ascends UP into the frozen mountain."
+                    if asc_suffix not in location.description:
+                        location.description += asc_suffix
 
             # Water Sources (oases, springs, rivers, lakes, wells)
             is_water_poi = any(k in name.lower() for k in ["oasis", "spring", "river", "lake", "well"])

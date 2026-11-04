@@ -183,6 +183,11 @@ class SkillService(BaseGameService):
 
         # Apply damage to enemy
         if enemy:
+            if hasattr(self, 'combat_service') and self.combat_service:
+                scale_msg = self.combat_service.scale_boss_for_encounter(enemy, location)
+                if scale_msg:
+                    combat_log = scale_msg + "\n" + combat_log
+
             if skill.character_class == CharacterClass.MAGE:
                 base_attr = player.stats.intelligence
             else:
@@ -206,6 +211,18 @@ class SkillService(BaseGameService):
                 location.remove_enemy(enemy.id)
                 player.gain_xp(enemy.xp_reward)
                 combat_log += f"\nYou gain {enemy.xp_reward} XP."
+
+                # Cooperative XP distribution on boss defeat
+                if getattr(enemy, 'is_boss', False):
+                    other_players = self.repo.get_players_in_location(location.id)
+                    for p_info in other_players:
+                        if p_info["id"] != player.id:
+                            other_p = self.repo.get_player(p_info["id"])
+                            if other_p and other_p.is_alive():
+                                other_p.gain_xp(enemy.xp_reward)
+                                self.repo.save_player(other_p)
+                    if len(other_players) > 1:
+                        combat_log += f"\n🎉 Cooperative Victory! All {len(other_players)} adventurers in the area were awarded {enemy.xp_reward} XP!"
                 
                 # Update quest kill objective
                 if self.quest_service:
@@ -236,12 +253,8 @@ class SkillService(BaseGameService):
             if skill.effect_type == "stun":
                 combat_log += f"\n{enemy.name} is stunned by the impact and cannot retaliate!"
             else:
-                enemy_dmg = max(1, enemy.attack)
-                armor = player.equipment.get("armor")
-                mitigation = armor.stat_bonuses.get("defense", 0) if armor else 0
-                final_dmg = max(1, enemy_dmg - mitigation)
-                player.take_damage(final_dmg)
-                combat_log += f"\n{enemy.name} retaliates for {final_dmg} damage! (Your HP: {player.stats.hp}/{player.stats.max_hp})"
+                _, retal_log = self._execute_enemy_strike(enemy, player)
+                combat_log += retal_log
 
         self.repo.save_player(player)
         self.repo.create_location(location)

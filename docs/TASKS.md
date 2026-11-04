@@ -124,11 +124,13 @@ Esta lista detalla las tareas pendientes para evolucionar el prototipo actual ha
     - [x] Detección y notificación en tiempo real de jugadores en la misma casilla (`Location`).
     - [x] Canales de Chat: Local (`say`), Global (`shout`), Privado (`whisper`).
     - [x] Frontend: Hook `useMultiplayerSocket`, panel de chat y lista de jugadores en la zona.
-- [ ] **Fase 3: Sincronización en Tiempo Real de Entorno (Room Sync)**
-    - [ ] **Actualización en vivo de Items y Enemigos vía WebSocket:** Cuando dos o más jugadores están en la misma casilla y uno toma/suelta un objeto (`take`/`drop`) o ataca a un enemigo/jefe (`attack`/`skill`), el backend emitirá un evento WebSocket `ROOM_STATE_SYNC` a todos los jugadores presentes con la lista fresca de `items` y `enemies`.
-    - [ ] **Sincronización en Frontend:** Escuchar `ROOM_STATE_SYNC` en `useMultiplayerSocket` / `useGameEngine` para refrescar `gameState.location.items` y `gameState.location.enemies` instantáneamente en la UI del otro jugador, mostrando el aviso en la terminal (ej: *"PlayerX atacó a Lobo (quedan 12 HP)"*, *"PlayerX recogió Poción de Vida"*).
+- [x] **Fase 3: Sincronización en Tiempo Real de Entorno (Room Sync)**
+    - [x] **Actualización en vivo de Items y Enemigos vía WebSocket:** Cuando dos o más jugadores están en la misma casilla y uno toma/suelta un objeto (`take`/`drop`) o ataca a un enemigo/jefe (`attack`/`skill`), el backend emitirá un evento WebSocket `ROOM_STATE_SYNC` a todos los jugadores presentes con la lista fresca de `items` y `enemies`.
+    - [x] **Sincronización en Frontend:** Escuchar `ROOM_STATE_SYNC` en `useMultiplayerSocket` / `useGameEngine` para refrescar `gameState.location.items` y `gameState.location.enemies` instantáneamente en la UI del otro jugador, mostrando el aviso en la terminal (ej: *"PlayerX atacó a Lobo (quedan 12 HP)"*, *"PlayerX recogió Poción de Vida"*).
     - [ ] Sistema de Comercio / Intercambio seguro entre jugadores (`trade`).
 - [ ] **Fase 4: Combate Cooperativo y Escalado Dinámico de Jefes**
-    - [ ] **Escalado Dinámico de Bosses según Grupo y Nivel:** Calcular la cantidad y nivel promedio de los jugadores en la sala que atacan a un jefe (`is_boss: True`). Escalar proporcionalmente su HP máximo, daño de ataque y nivel efectivo (ej: +60% HP por cada jugador adicional y ajuste por nivel del grupo) para balancear la dificultad en equipo.
-    - [ ] Reparto justo de XP y botín cooperativo entre los miembros del grupo o atacantes del jefe.
+    - [x] **Escalado Dinámico de Bosses según Grupo y Nivel:** Calcular la cantidad y nivel promedio de los jugadores en la sala que atacan a un jefe (`is_boss: True`). Escalar proporcionalmente su HP máximo, daño de ataque y nivel efectivo (ej: +60% HP por cada jugador adicional y ajuste por nivel del grupo) para balancear la dificultad en equipo.
+    - [x] **Habilidades Activas para Jefes Finales:** Ataques especiales tácticos ejecutados durante el turno del jefe (Monstrous Snow Golem, Black Hound Sphinx, Dungeon Wardens).
+    - [x] **Bioma de Nieve y Mazmorra Ascendente de Montaña:** Niveles $z > 0$ en Mount Frostspire subiendo por la montaña hasta la cima helada con el Monstrous Snow Golem.
+    - [x] Reparto justo de XP y botín cooperativo entre los miembros del grupo o atacantes del jefe.
     - [ ] Sistema de Grupos (`Party`) con chat dedicado y barras de estado del equipo en tiempo real.

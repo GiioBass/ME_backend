@@ -87,16 +87,56 @@ class BaseGameService:
             self.repo.save_player(player)
         return msg_add
 
+    def _execute_enemy_strike(self, enemy, player: Player) -> Tuple[int, str]:
+        """Executes an attack from an enemy or boss against the player, triggering active skills if available."""
+        armor = player.equipment.get("armor")
+        mitigation = 0
+        if armor and "defense" in armor.stat_bonuses:
+            mitigation = armor.stat_bonuses["defense"]
+
+        # Tick cooldowns on enemy
+        if getattr(enemy, 'cooldowns', None):
+            for sk in list(enemy.cooldowns.keys()):
+                if enemy.cooldowns[sk] > 0:
+                    enemy.cooldowns[sk] -= 1
+
+        skills = getattr(enemy, 'skills', []) or []
+        usable_skills = [
+            s for s in skills 
+            if enemy.cooldowns.get(s.get("name", ""), 0) <= 0
+        ]
+
+        # 60% chance for boss to cast a skill if available
+        if getattr(enemy, 'is_boss', False) and usable_skills and random.random() < 0.60:
+            skill = random.choice(usable_skills)
+            s_name = skill.get("name", "Special Attack")
+            s_dmg = skill.get("damage", 0)
+            s_heal = skill.get("heal", 0)
+            s_desc = skill.get("desc", "unleashes a devastating attack")
+            cd = skill.get("cooldown", 3)
+
+            enemy.cooldowns[s_name] = cd
+            
+            if s_heal > 0:
+                healed = enemy.heal(s_heal) if hasattr(enemy, "heal") else 0
+                return 0, f"\n⚡ [BOSS SKILL] {enemy.name} casts '{s_name}'! {s_desc} (+{healed} HP, now {enemy.hp}/{enemy.max_hp} HP)!"
+            
+            raw_dmg = max(1, s_dmg)
+            final_dmg = max(1, raw_dmg - (mitigation // 2))
+            player.take_damage(final_dmg)
+            return final_dmg, f"\n⚡ [BOSS SKILL] {enemy.name} casts '{s_name}'! {s_desc}! Dealing {final_dmg} damage! (Your HP: {player.stats.hp}/{player.stats.max_hp})"
+
+        # Regular attack
+        enemy_dmg = max(1, enemy.attack)
+        final_dmg = max(1, enemy_dmg - mitigation)
+        player.take_damage(final_dmg)
+        return final_dmg, f"\n{enemy.name} retaliates for {final_dmg} damage! (Your HP: {player.stats.hp}/{player.stats.max_hp})"
+
     def _process_enemy_turns(self, player: Player, location: Location, excluded_enemy_id: str = None, chance: float = 1.0) -> Tuple[str, bool]:
         if not getattr(location, 'enemies', None):
             return "", False
             
         combat_log = ""
-        armor = player.equipment.get("armor")
-        mitigation = 0
-        if armor and "defense" in armor.stat_bonuses:
-            mitigation = armor.stat_bonuses["defense"]
- 
         is_dead = False
         for enemy in location.enemies:
             if enemy.id == excluded_enemy_id or enemy.is_dead:
@@ -105,11 +145,8 @@ class BaseGameService:
             if random.random() > chance:
                 continue
  
-            enemy_dmg = max(1, enemy.attack)
-            final_dmg = max(1, enemy_dmg - mitigation)
-            player.take_damage(final_dmg)
-            
-            combat_log += f"\n{enemy.name} attacks you for {final_dmg} damage! (Your HP: {player.stats.hp}/{player.stats.max_hp})"
+            _, log_line = self._execute_enemy_strike(enemy, player)
+            combat_log += log_line
             
             if not player.is_alive():
                 combat_log += "\nYou have been defeated...\nYou wake up back at the start, feeling woozy."
@@ -199,16 +236,29 @@ class BaseGameService:
         elif "sphinx" in name_lower or "hound" in name_lower:
             drops.append("base_bone")
             drops.append("base_obsidian_blade")
+        elif "golem" in name_lower or "snow" in name_lower:
+            drops.append("base_glacial_core")
+            drops.append("base_stone")
+            if random.random() < 0.60: drops.append("base_glacial_claymore")
+        elif "yeti" in name_lower:
+            drops.append("base_wolf_pelt")
+            drops.append("base_bone")
+            if random.random() < 0.40: drops.append("base_wool")
         else:
             drops.append("base_bone")
             if random.random() < 0.15: drops.append("base_rusty_sword")
 
         # Boss or abyssal loot bonus
-        if getattr(enemy, 'is_boss', False) or any(k in name_lower for k in ["warden", "abyssal", "boss", "tyrant", "dread", "sphinx"]):
-            drops.append("base_abyssal_core")
+        if getattr(enemy, 'is_boss', False) or any(k in name_lower for k in ["warden", "abyssal", "boss", "tyrant", "dread", "sphinx", "golem"]):
+            if "golem" in name_lower or "snow" in name_lower:
+                drops.append("base_glacial_core")
+            else:
+                drops.append("base_abyssal_core")
             if random.random() < 0.50: drops.append("base_iron_sword")
 
         FALLBACK_ITEMS = {
+            "base_glacial_core": {"name": "Glacial Core", "description": "A glowing heart of permafrost ice pulsing with subzero energy.", "item_type": ItemType.MATERIAL, "value": 350, "weight": 2.0},
+            "base_glacial_claymore": {"name": "Glacial Claymore", "description": "A massive two-handed sword forged from enchanted glacial ice and steel (+14 Strength).", "item_type": ItemType.WEAPON, "value": 200, "weight": 4.5, "equip_slot": "weapon", "stat_bonuses": {"strength": 14}, "durability": 120, "max_durability": 120},
             "base_spider_silk": {"name": "Spider Silk", "description": "Strong, sticky thread spun by giant spiders.", "item_type": ItemType.MATERIAL, "value": 6, "weight": 0.1},
             "base_poison_sac": {"name": "Poison Sac", "description": "A venom gland extracted from arachnids or serpents.", "item_type": ItemType.MATERIAL, "value": 10, "weight": 0.2},
             "base_wolf_pelt": {"name": "Wolf Pelt", "description": "Thick fur hide from a timber wolf.", "item_type": ItemType.MATERIAL, "value": 8, "weight": 1.2},

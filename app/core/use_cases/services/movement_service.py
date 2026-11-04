@@ -19,16 +19,16 @@ class MovementService(BaseGameService):
         if direction not in ["north", "south", "east", "west", "up", "down"]:
             return "Go where?", player, location
             
-        if direction == "down":
+        if direction in ["down", "up"]:
             bosses = [e for e in location.enemies if getattr(e, "is_boss", False) and not getattr(e, "is_dead", False)]
             if bosses:
-                return f"The {bosses[0].name} blocks your path deeper into the dungeon!", player, location
+                return f"The {bosses[0].name} blocks your path!", player, location
 
         # Engagement Check: Dungeon enemies and provoked enemies block movement
         alive_enemies = [e for e in location.enemies if not getattr(e, "is_dead", False)]
         bypass_msg = ""
         if alive_enemies:
-            is_dungeon = location.id.startswith("dng_")
+            is_dungeon = location.id.startswith("dng_") or location.id.startswith("mtn_")
             is_provoked = any(e.hp < e.max_hp for e in alive_enemies)
             
             if is_dungeon or is_provoked:
@@ -57,7 +57,7 @@ class MovementService(BaseGameService):
             if len(location.items) != original_item_count:
                 self.repo.create_location(location)
 
-            # Check if entering an ungenerated dungeon floor
+            # Check if entering an ungenerated dungeon or mountain floor
             new_loc = self.repo.get_location(next_location_id)
             if not new_loc and next_location_id.startswith("dng_") and self.dungeon_gen:
                 parts = next_location_id.split("_")
@@ -65,6 +65,15 @@ class MovementService(BaseGameService):
                 
                 dungeon_locations = self.dungeon_gen.generate_floor(x, y, z)
                 for loc in dungeon_locations:
+                    self.repo.create_location(loc)
+                    
+                new_loc = self.repo.get_location(next_location_id)
+            elif not new_loc and next_location_id.startswith("mtn_") and self.dungeon_gen:
+                parts = next_location_id.split("_")
+                x, y, z = int(parts[1]), int(parts[2]), int(parts[3])
+                
+                mountain_locations = self.dungeon_gen.generate_mountain_floor(x, y, z)
+                for loc in mountain_locations:
                     self.repo.create_location(loc)
                     
                 new_loc = self.repo.get_location(next_location_id)

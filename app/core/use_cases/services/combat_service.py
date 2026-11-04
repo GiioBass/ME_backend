@@ -1,9 +1,10 @@
-from typing import Tuple
+from typing import Tuple, Optional
 import random
 import uuid
 from app.core.domain.player import Player
 from app.core.domain.location import Location
 from app.core.domain.item import Item, ItemType
+from app.core.domain.enemy import Enemy
 from app.core.config import settings
 from app.core.use_cases.services.base_service import BaseGameService
 
@@ -11,6 +12,53 @@ class CombatService(BaseGameService):
     def __init__(self, repository, world_gen=None, dungeon_gen=None, game_settings=None, quest_service=None):
         super().__init__(repository, world_gen, dungeon_gen, game_settings)
         self.quest_service = quest_service
+
+    def scale_boss_for_encounter(self, boss: Enemy, location: Location) -> str:
+        """
+        Dynamically scales a boss based on the number and level of players in the location.
+        Formula:
+          - HP: base_hp * (1.0 + 0.6 * (players - 1)) * (1.0 + 0.15 * max(0, avg_level - 1))
+          - Attack: base_attack * (1.0 + 0.25 * (players - 1)) * (1.0 + 0.1 * max(0, avg_level - 1))
+          - Level: max(base_level, avg_level + 1 + (players - 1))
+          - XP: base_xp * (1.0 + 0.5 * (players - 1))
+        """
+        if not getattr(boss, 'is_boss', False):
+            return ""
+
+        players = self.repo.get_players_in_location(location.id)
+        player_count = max(1, len(players))
+        avg_level = max(1, round(sum(p.get("level", 1) for p in players) / player_count))
+
+        if getattr(boss, 'base_hp', None) is None:
+            boss.base_hp = boss.max_hp
+        if getattr(boss, 'base_attack', None) is None:
+            boss.base_attack = boss.attack
+
+        # Calculate scaled targets
+        hp_mult = (1.0 + 0.6 * (player_count - 1)) * (1.0 + 0.15 * max(0, avg_level - 1))
+        atk_mult = (1.0 + 0.25 * (player_count - 1)) * (1.0 + 0.1 * max(0, avg_level - 1))
+        
+        scaled_max_hp = max(boss.base_hp, round(boss.base_hp * hp_mult))
+        scaled_atk = max(boss.base_attack, round(boss.base_attack * atk_mult))
+        scaled_lvl = max(boss.level, avg_level + 1 + (player_count - 1))
+        scaled_xp = round(boss.xp_reward * (1.0 + 0.5 * (player_count - 1)))
+
+        scaling_log = ""
+        if player_count > getattr(boss, 'scaled_players_count', 1) or boss.level < scaled_lvl or boss.max_hp < scaled_max_hp:
+            old_max = boss.max_hp if boss.max_hp > 0 else boss.base_hp
+            boss.max_hp = scaled_max_hp
+            # Scale current HP proportionally
+            if boss.hp == old_max:
+                boss.hp = scaled_max_hp
+            else:
+                boss.hp = max(1, round(boss.hp * (scaled_max_hp / old_max)))
+            boss.attack = scaled_atk
+            boss.level = scaled_lvl
+            boss.xp_reward = scaled_xp
+            boss.scaled_players_count = player_count
+            scaling_log = f"\n⚠️ [BOSS CHALLENGE] {boss.name} senses a group of {player_count} adventurer(s) (Avg Lvl {avg_level})! Its power surges to Level {boss.level} (Max HP: {boss.max_hp}, Atk: {boss.attack})!"
+            
+        return scaling_log
 
     def attack_enemy(self, player_id: str, target_name: str) -> Tuple[str, Player, Location]:
         player, location = self._get_player_and_location(player_id)
@@ -22,6 +70,9 @@ class CombatService(BaseGameService):
         if not enemy:
             return f"You don't see '{target_name}' here.", player, location
 
+        # Dynamic Boss Scaling for group encounters
+        scale_msg = self.scale_boss_for_encounter(enemy, location)
+
         # Calculate player damage (balanced base scaling)
         total_strength = player.stats.strength
         weapon = player.equipment.get("weapon")
@@ -30,7 +81,7 @@ class CombatService(BaseGameService):
             
         damage = max(1, (total_strength // 3))
         actual_dmg = enemy.take_damage(damage)
-        combat_log = f"You strike {enemy.name} for {actual_dmg} damage. (Enemy HP: {enemy.hp}/{enemy.max_hp})"
+        combat_log = scale_msg + f"\nYou strike {enemy.name} for {actual_dmg} damage. (Enemy HP: {enemy.hp}/{enemy.max_hp})"
         
         # Basic attack recharges tactical stance/skills
         if getattr(player, "skill_cooldowns", None):
@@ -42,6 +93,18 @@ class CombatService(BaseGameService):
             location.remove_enemy(enemy.id)
             player.gain_xp(enemy.xp_reward)
             combat_log += f"\nYou gain {enemy.xp_reward} XP."
+
+            # Cooperative XP distribution for other players present in the room
+            if getattr(enemy, 'is_boss', False):
+                other_players = self.repo.get_players_in_location(location.id)
+                for p_info in other_players:
+                    if p_info["id"] != player.id:
+                        other_p = self.repo.get_player(p_info["id"])
+                        if other_p and other_p.is_alive():
+                            other_p.gain_xp(enemy.xp_reward)
+                            self.repo.save_player(other_p)
+                if len(other_players) > 1:
+                    combat_log += f"\n🎉 Cooperative Victory! All {len(other_players)} adventurers in the area were awarded {enemy.xp_reward} XP!"
             
             if self.quest_service:
                 q_log = self.quest_service.update_kill_progress(player, enemy.name)
@@ -56,16 +119,9 @@ class CombatService(BaseGameService):
             time_msg = self._advance_time_and_events(world_time, player, settings.TIME_COST_ATTACK)
             return combat_log + time_msg, player, location
             
-        # Enemy retaliates (the one being attacked)
-        enemy_dmg = max(1, enemy.attack)
-        armor = player.equipment.get("armor")
-        mitigation = 0
-        if armor and "defense" in armor.stat_bonuses:
-            mitigation = armor.stat_bonuses["defense"]
-            
-        final_dmg = max(1, enemy_dmg - mitigation)
-        player.take_damage(final_dmg)
-        combat_log += f"\n{enemy.name} retaliates for {final_dmg} damage! (Your HP: {player.stats.hp}/{player.stats.max_hp})"
+        # Enemy retaliates (triggers active boss skills if available)
+        _, enemy_retaliate_log = self._execute_enemy_strike(enemy, player)
+        combat_log += enemy_retaliate_log
         
         # Other enemies attack
         other_combat_log, _ = self._process_enemy_turns(player, location, excluded_enemy_id=enemy.id)

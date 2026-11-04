@@ -233,6 +233,49 @@ def execute_game_action(service, func_name, *args):
         try:
             from app.adapters.driving.websocket.connection_manager import manager
             manager.broadcast_sync(manager.update_player_location(player.id, location.id))
+
+            # Real-time WebSocket sync of room state (items and enemies) to other players in the room
+            room_modifying_actions = {
+                "attack_enemy", "take_item", "drop_item", "use_skill", "craft_item"
+            }
+            cmd_arg = str(args[1]).lower() if len(args) > 1 and isinstance(args[1], str) else ""
+            is_env_action = (func_name in room_modifying_actions) or any(
+                cmd_arg.startswith(k) for k in [
+                    "attack", "atacar", "take", "tomar", "coger", "recoger", 
+                    "drop", "soltar", "tirar", "skill", "habilidad", "craft", "fabricar"
+                ]
+            )
+
+            if is_env_action and location:
+                loc_id = getattr(location, 'id', None) or (location.get('id') if isinstance(location, dict) else None)
+                if loc_id:
+                    serialized_items = [serialize_item(i) for i in getattr(location, 'items', [])]
+                    serialized_enemies = [serialize_enemy(e) for e in getattr(location, 'enemies', [])]
+
+                    p_name = getattr(player, 'name', 'An adventurer')
+                    action_summary = None
+                    if "attack" in func_name or any(cmd_arg.startswith(k) for k in ["attack", "atacar"]):
+                        target = args[1] if len(args) > 1 else ""
+                        action_summary = f"{p_name} attacked {target} in the area."
+                    elif "skill" in func_name or any(cmd_arg.startswith(k) for k in ["skill", "habilidad"]):
+                        sk = args[1] if len(args) > 1 else "a skill"
+                        action_summary = f"{p_name} unleashed {sk} in the area!"
+                    elif "take" in func_name or any(cmd_arg.startswith(k) for k in ["take", "tomar", "coger", "recoger"]):
+                        it = args[1] if len(args) > 1 else "an item"
+                        action_summary = f"{p_name} picked up {it}."
+                    elif "drop" in func_name or any(cmd_arg.startswith(k) for k in ["drop", "soltar", "tirar"]):
+                        it = args[1] if len(args) > 1 else "an item"
+                        action_summary = f"{p_name} dropped {it} on the ground."
+
+                    sync_payload = {
+                        "event": "ROOM_EVENT",
+                        "subtype": "ROOM_STATE_SYNC",
+                        "location_id": loc_id,
+                        "items": serialized_items,
+                        "enemies": serialized_enemies,
+                        "message": action_summary
+                    }
+                    manager.broadcast_sync(manager.broadcast_to_room(loc_id, sync_payload, exclude_player_id=player.id))
         except Exception:
             pass
 
